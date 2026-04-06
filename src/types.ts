@@ -1,126 +1,126 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties } from "react";
 
 // Define all types locally to avoid rollup issues
 export interface VideoFile {
-  file: File
-  url: string
-  duration: number
-  size: number
-  type: string
-  name: string
+  file: File;
+  url: string;
+  duration: number;
+  size: number;
+  type: string;
+  name: string;
 }
 
 export interface SubtitleChunk {
-  id: string
-  text: string
-  timestamp: [number, number]
-  deleted?: boolean
+  id: string;
+  text: string;
+  timestamp: [number, number];
+  deleted?: boolean;
 }
 
 export interface VideoSegment {
-  start: number
-  end: number
-  keep: boolean
-  text?: string
-  id?: string
+  start: number;
+  end: number;
+  keep: boolean;
+  text?: string;
+  id?: string;
 }
 
 export interface VideoProcessingProgress {
-  stage: 'analyzing' | 'cutting' | 'encoding' | 'complete' | 'error'
-  progress: number
-  message: string
-  error?: string
+  stage: "analyzing" | "cutting" | "encoding" | "complete" | "error";
+  progress: number;
+  message: string;
+  error?: string;
 }
 
 export interface ASRProgress {
-  stage: 'initializing' | 'processing' | 'completed' | 'error'
-  progress: number
-  message?: string
+  stage: "initializing" | "processing" | "completed" | "error";
+  progress: number;
+  message?: string;
 }
 
 export interface SubtitleStyle {
-  fontFamily: string
-  fontSize: number
-  fontWeight: 'normal' | 'bold'
-  color: string
-  backgroundColor: string
-  borderColor: string
-  borderWidth: number
-  borderRadius: number
-  padding: number
-  position: 'top' | 'center' | 'bottom'
-  alignment: 'left' | 'center' | 'right'
-  opacity: number
-  shadowColor: string
-  shadowBlur: number
-  shadowOffsetX: number
-  shadowOffsetY: number
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: "normal" | "bold";
+  color: string;
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  padding: number;
+  position: "top" | "center" | "bottom";
+  alignment: "left" | "center" | "right";
+  opacity: number;
+  shadowColor: string;
+  shadowBlur: number;
+  shadowOffsetX: number;
+  shadowOffsetY: number;
 }
 
 // FlyCut Caption specific configuration
 export interface FlyCutCaptionConfig {
   /** Theme mode */
-  theme?: 'light' | 'dark' | 'auto'
+  theme?: "light" | "dark" | "auto";
   /** Interface language (zh-CN, en-US, etc.) */
-  language?: string
+  language?: string;
   /** ASR recognition language */
-  asrLanguage?: string
+  asrLanguage?: string;
   /** Enable drag and drop file upload */
-  enableDragDrop?: boolean
+  enableDragDrop?: boolean;
   /** Enable export functionality */
-  enableExport?: boolean
+  enableExport?: boolean;
   /** Enable video processing functionality */
-  enableVideoProcessing?: boolean
+  enableVideoProcessing?: boolean;
   /** Enable theme toggle button */
-  enableThemeToggle?: boolean
+  enableThemeToggle?: boolean;
   /** Enable language selector */
-  enableLanguageSelector?: boolean
+  enableLanguageSelector?: boolean;
   /** Maximum file size in MB */
-  maxFileSize?: number
+  maxFileSize?: number;
   /** Supported file formats */
-  supportedFormats?: string[]
+  supportedFormats?: string[];
 }
 
 // FlyCut Caption component props
 export interface FlyCutCaptionProps {
   /** Custom CSS class name */
-  className?: string
+  className?: string;
   /** Custom inline styles */
-  style?: CSSProperties
+  style?: CSSProperties;
   /** Component configuration */
-  config?: FlyCutCaptionConfig
+  config?: FlyCutCaptionConfig;
   /** Custom locale data */
-  locale?: any  // FlyCutCaptionLocale type will be imported later
+  locale?: any; // FlyCutCaptionLocale type will be imported later
   /** Called when component is ready */
-  onReady?: () => void
+  onReady?: () => void;
   /** Called when a file is selected */
-  onFileSelected?: (file: VideoFile) => void
+  onFileSelected?: (file: VideoFile) => void;
   /** Called when subtitles are generated */
-  onSubtitleGenerated?: (subtitles: SubtitleChunk[]) => void
+  onSubtitleGenerated?: (subtitles: SubtitleChunk[]) => void;
   /** Called when subtitles are changed */
-  onSubtitleChanged?: (subtitles: SubtitleChunk[]) => void
+  onSubtitleChanged?: (subtitles: SubtitleChunk[]) => void;
   /** Called when video processing is complete */
-  onVideoProcessed?: (blob: Blob, filename: string) => void
+  onVideoProcessed?: (blob: Blob, filename: string) => void;
   /** Called when export is complete */
-  onExportComplete?: (blob: Blob, filename: string) => void
+  onExportComplete?: (blob: Blob, filename: string) => void;
   /** Called when an error occurs */
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void;
   /** Called to report progress updates */
-  onProgress?: (stage: string, progress: number) => void
+  onProgress?: (stage: string, progress: number) => void;
   /** Called when language changes */
-  onLanguageChange?: (language: string) => void
+  onLanguageChange?: (language: string) => void;
 }
 
 // Default configuration
 export const defaultConfig: Required<FlyCutCaptionConfig> = {
-  theme: 'auto',
-  language: 'zh-CN',
-  asrLanguage: 'auto',
+  theme: "auto",
+  language: "zh-CN",
+  asrLanguage: "auto",
   enableDragDrop: true,
   enableExport: true,
   enableVideoProcessing: true,
   enableThemeToggle: true,
   enableLanguageSelector: true,
   maxFileSize: 500, // MB
-  supportedFormats: ['mp4', 'webm', 'avi', 'mov', 'mp3', 'wav', 'ogg']
-}
+  supportedFormats: ["mp4", "webm", "avi", "mov", "mp3", "wav", "ogg"],
+};

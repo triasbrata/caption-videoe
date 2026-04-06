@@ -1,1 +1,1 @@
-export { EnhancedVideoPlayer } from './EnhancedVideoPlayer';
+export { EnhancedVideoPlayer } from "./EnhancedVideoPlayer";

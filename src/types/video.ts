@@ -27,29 +27,29 @@ export interface VideoSegment {
 }
 
 export interface VideoProcessingProgress {
-  stage: 'analyzing' | 'cutting' | 'encoding' | 'complete' | 'error';
+  stage: "analyzing" | "cutting" | "encoding" | "complete" | "error";
   progress: number; // 0-100
   message: string;
   error?: string;
 }
 
 export interface VideoProcessorConfig {
-  engine: 'webav' | 'ffmpeg.wasm';
-  outputFormat: 'mp4' | 'webm';
-  quality: 'high' | 'medium' | 'low';
+  engine: "webav" | "ffmpeg.wasm";
+  outputFormat: "mp4" | "webm";
+  quality: "high" | "medium" | "low";
   preserveAudio: boolean;
 }
 
 export interface ExportOptions {
-  format: 'mp4' | 'webm' | 'avi';
-  quality: 'high' | 'medium' | 'low';
+  format: "mp4" | "webm" | "avi";
+  quality: "high" | "medium" | "low";
   includeSubtitles: boolean;
-  subtitleFormat?: 'srt' | 'vtt' | 'json';
+  subtitleFormat?: "srt" | "vtt" | "json";
 }
 
 export type VideoAction =
-  | { type: 'SET_VIDEO_FILE'; videoFile: VideoFile }
-  | { type: 'SET_PLAYER_STATE'; playerState: Partial<VideoPlayerState> }
-  | { type: 'SET_PROCESSING_PROGRESS'; progress: VideoProcessingProgress }
-  | { type: 'SET_PROCESSOR_CONFIG'; config: Partial<VideoProcessorConfig> }
-  | { type: 'RESET_VIDEO' };
+  | { type: "SET_VIDEO_FILE"; videoFile: VideoFile }
+  | { type: "SET_PLAYER_STATE"; playerState: Partial<VideoPlayerState> }
+  | { type: "SET_PROCESSING_PROGRESS"; progress: VideoProcessingProgress }
+  | { type: "SET_PROCESSOR_CONFIG"; config: Partial<VideoProcessorConfig> }
+  | { type: "RESET_VIDEO" };

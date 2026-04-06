@@ -1,19 +1,19 @@
 // 视频处理引擎类型定义
 
-import type { VideoFile, VideoSegment, VideoProcessingProgress } from './video';
-import type { SubtitleStyle } from '@/components/SubtitleSettings';
+import type { VideoFile, VideoSegment, VideoProcessingProgress } from "./video";
+import type { SubtitleStyle } from "@/components/SubtitleSettings";
 
 // 支持的视频处理引擎类型
-export type VideoEngineType = 'webav' | 'ffmpeg' | 'webcodecs';
+export type VideoEngineType = "webav" | "ffmpeg" | "webcodecs";
 
 // 字幕处理类型
-export type SubtitleProcessingType = 'none' | 'soft' | 'hard';
+export type SubtitleProcessingType = "none" | "soft" | "hard";
 
 // 视频处理选项
 export interface VideoProcessingOptions {
-  format?: 'mp4' | 'webm' | 'avi';
-  outputFormat?: 'mp4' | 'webm' | 'avi';
-  quality: 'high' | 'medium' | 'low';
+  format?: "mp4" | "webm" | "avi";
+  outputFormat?: "mp4" | "webm" | "avi";
+  quality: "high" | "medium" | "low";
   preserveAudio: boolean;
   subtitleProcessing?: SubtitleProcessingType; // 字幕处理类型：无字幕、软烧录、硬烧录
   subtitleStyle?: SubtitleStyle; // 字幕样式配置
@@ -44,16 +44,22 @@ export interface IVideoProcessingEngine {
 
   // 引擎能力检测
   checkCapabilities(): Promise<EngineCapabilities>;
-  
+
   // 初始化引擎
-  initialize(videoFile: VideoFile, onProgress?: (progress: VideoProcessingProgress) => void): Promise<void>;
-  
+  initialize(
+    videoFile: VideoFile,
+    onProgress?: (progress: VideoProcessingProgress) => void
+  ): Promise<void>;
+
   // 处理视频
-  processVideo(segments: VideoSegment[], options: VideoProcessingOptions): Promise<Blob>;
-  
+  processVideo(
+    segments: VideoSegment[],
+    options: VideoProcessingOptions
+  ): Promise<Blob>;
+
   // 清理资源
   cleanup(): Promise<void>;
-  
+
   // 引擎特定的配置
   configure?(config: Record<string, any>): void;
 }

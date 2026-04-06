@@ -1,5 +1,5 @@
 // Zustand stores 主入口
-export * from './appStore';
+export * from "./appStore";
 export {
   useHistoryStore,
   useChunks,
@@ -17,6 +17,6 @@ export {
   useDeleteSelected,
   useRestoreSelected,
   useResetHistory,
-} from './historyStore';
-export * from './messageStore';
-export * from './themeStore';
+} from "./historyStore";
+export * from "./messageStore";
+export * from "./themeStore";

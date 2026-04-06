@@ -18,7 +18,7 @@
   "success": "Success",
   "warning": "Warning",
   "info": "Info",
-  
+
   "file": "File",
   "video": "Video",
   "audio": "Audio",
@@ -33,7 +33,7 @@
   "time": "Time",
   "progress": "Progress",
   "status": "Status",
-  
+
   "ready": "Ready",
   "waiting": "Waiting",
   "failed": "Failed",

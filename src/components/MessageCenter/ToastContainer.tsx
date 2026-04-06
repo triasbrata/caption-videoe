@@ -1,5 +1,5 @@
 // Toast 容器组件 - 使用 Shadcn/ui Sonner
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from "@/components/ui/sonner";
 
 export function ToastContainer() {
   return (

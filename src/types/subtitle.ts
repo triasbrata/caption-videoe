@@ -15,7 +15,17 @@ export interface SubtitleTranscript {
 }
 
 export interface ASRProgress {
-  status: 'loading' | 'initiate' | 'progress' | 'done' | 'ready' | 'loaded' | 'running' | 'complete' | 'error' | 'reset';
+  status:
+    | "loading"
+    | "initiate"
+    | "progress"
+    | "done"
+    | "ready"
+    | "loaded"
+    | "running"
+    | "complete"
+    | "error"
+    | "reset";
   data?: string;
   file?: string;
   progress?: number;
@@ -33,12 +43,12 @@ export interface SubtitleEditorState {
   processingProgress: number;
 }
 
-export type SubtitleAction = 
-  | { type: 'SET_TRANSCRIPT'; transcript: SubtitleTranscript }
-  | { type: 'SET_CURRENT_TIME'; time: number }
-  | { type: 'TOGGLE_CHUNK_SELECTION'; chunkId: string }
-  | { type: 'SELECT_ALL_CHUNKS' }
-  | { type: 'DESELECT_ALL_CHUNKS' }
-  | { type: 'SET_PROCESSING'; isProcessing: boolean }
-  | { type: 'SET_PROCESSING_PROGRESS'; progress: number }
-  | { type: 'RESET' };
+export type SubtitleAction =
+  | { type: "SET_TRANSCRIPT"; transcript: SubtitleTranscript }
+  | { type: "SET_CURRENT_TIME"; time: number }
+  | { type: "TOGGLE_CHUNK_SELECTION"; chunkId: string }
+  | { type: "SELECT_ALL_CHUNKS" }
+  | { type: "DESELECT_ALL_CHUNKS" }
+  | { type: "SET_PROCESSING"; isProcessing: boolean }
+  | { type: "SET_PROCESSING_PROGRESS"; progress: number }
+  | { type: "RESET" };

@@ -1,9 +1,14 @@
 // 消息中心类型定义
 
-export type MessageType = 'info' | 'success' | 'warning' | 'error' | 'processing';
+export type MessageType =
+  | "info"
+  | "success"
+  | "warning"
+  | "error"
+  | "processing";
 
 export interface VideoProcessingProgress {
-  stage: 'analyzing' | 'cutting' | 'encoding' | 'complete' | 'error';
+  stage: "analyzing" | "cutting" | "encoding" | "complete" | "error";
   progress: number;
   message: string;
   error?: string;

@@ -1,6 +1,6 @@
 // 字幕渲染工具函数
 
-import { renderTxt2ImgBitmap, ImgClip } from '@webav/av-cliper';
+import { renderTxt2ImgBitmap, ImgClip } from "@webav/av-cliper";
 
 export interface SubtitleChunk {
   text: string;
@@ -16,19 +16,19 @@ export interface SubtitleStyle {
   padding?: number;
   borderRadius?: number;
   textShadow?: string;
-  textAlign?: 'left' | 'center' | 'right';
+  textAlign?: "left" | "center" | "right";
   maxWidth?: number;
 }
 
 const DEFAULT_SUBTITLE_STYLE: Required<SubtitleStyle> = {
   fontSize: 32,
-  color: 'white',
-  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  color: "white",
+  backgroundColor: "rgba(0, 0, 0, 0.7)",
   fontFamily: 'Arial, "Microsoft YaHei", sans-serif',
   padding: 12,
   borderRadius: 6,
-  textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-  textAlign: 'center',
+  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+  textAlign: "center",
   maxWidth: 800,
 };
 
@@ -37,7 +37,7 @@ const DEFAULT_SUBTITLE_STYLE: Required<SubtitleStyle> = {
  */
 function styleToCSS(style: SubtitleStyle): string {
   const mergedStyle = { ...DEFAULT_SUBTITLE_STYLE, ...style };
-  
+
   return `
     font-size: ${mergedStyle.fontSize}px;
     color: ${mergedStyle.color};
@@ -81,19 +81,19 @@ export async function createSubtitleClip(
  * 处理字幕文本，支持自动换行
  */
 export function formatSubtitleText(
-  text: string, 
+  text: string,
   maxLength: number = 30
 ): string {
   // 如果文本长度小于最大长度，直接返回
   if (text.length <= maxLength) {
     return text;
   }
-  
+
   // 按标点符号和空格分割
   const words = text.split(/(\s|[，。！？；：、])/);
   const lines: string[] = [];
-  let currentLine = '';
-  
+  let currentLine = "";
+
   for (const word of words) {
     if ((currentLine + word).length <= maxLength) {
       currentLine += word;
@@ -107,12 +107,12 @@ export function formatSubtitleText(
       }
     }
   }
-  
+
   if (currentLine) {
     lines.push(currentLine);
   }
-  
-  return lines.join('\n');
+
+  return lines.join("\n");
 }
 
 /**
@@ -126,7 +126,7 @@ export function calculateSubtitlePosition(
 ): { x: number; y: number } {
   // 居中底部显示，留出一定边距
   const margin = Math.min(videoHeight * 0.1, 60); // 10% 或最大 60px
-  
+
   return {
     x: (videoWidth - subtitleWidth) / 2,
     y: videoHeight - subtitleHeight - margin,

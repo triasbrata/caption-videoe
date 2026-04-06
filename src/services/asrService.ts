@@ -1,19 +1,19 @@
 // ASR 服务 - 管理语音识别功能
 // 基于 transformers.js-examples/whisper-word-timestamps 简化实现
 
-import type { ASRProgress, SubtitleTranscript } from '../types/subtitle';
-import { processAudioForASR, hasWebGPU } from '../utils/audioUtils';
-import asrWorker from '../workers/asrWorker.ts?worker&inline'
+import type { ASRProgress, SubtitleTranscript } from "../types/subtitle";
+import { processAudioForASR, hasWebGPU } from "../utils/audioUtils";
+import asrWorker from "../workers/asrWorker.ts?worker&inline";
 
 export class ASRService {
   private worker: Worker | null = null;
   private onProgress: ((progress: ASRProgress) => void) | null = null;
   private isModelLoaded = false;
-  private currentDevice: 'webgpu' | 'wasm' = 'wasm';
+  private currentDevice: "webgpu" | "wasm" = "wasm";
   // private currentLanguage: string = 'en'; // TODO: Implement language switching
 
   constructor() {
-    console.log('ASR service initialized');
+    console.log("ASR service initialized");
     this.init();
   }
 
@@ -23,8 +23,11 @@ export class ASRService {
   private async init() {
     // 检测设备能力
     const supportsWebGPU = await hasWebGPU();
-    this.currentDevice = supportsWebGPU ? 'webgpu' : 'wasm';
-    console.log('ASR device detection result:', { supportsWebGPU, currentDevice: this.currentDevice });
+    this.currentDevice = supportsWebGPU ? "webgpu" : "wasm";
+    console.log("ASR device detection result:", {
+      supportsWebGPU,
+      currentDevice: this.currentDevice,
+    });
   }
 
   /**
@@ -32,21 +35,21 @@ export class ASRService {
    */
   private createWorker(): Worker {
     if (this.worker) {
-      console.log('ASR terminating existing worker');
+      console.log("ASR terminating existing worker");
       this.worker.terminate();
     }
 
-    console.log('ASR creating new worker');
-    this.worker = new asrWorker()
+    console.log("ASR creating new worker");
+    this.worker = new asrWorker();
 
     this.worker.onmessage = (e) => {
-      console.log('ASR worker message received:', e.data);
+      console.log("ASR worker message received:", e.data);
       const progress = e.data as ASRProgress;
-      
+
       // 更新模型加载状态
-      if (progress.status === 'loaded') {
+      if (progress.status === "loaded") {
         this.isModelLoaded = true;
-      } else if (progress.status === 'error') {
+      } else if (progress.status === "error") {
         this.isModelLoaded = false;
       }
 
@@ -57,11 +60,11 @@ export class ASRService {
     };
 
     this.worker.onerror = (error) => {
-      console.error('ASR worker error:', error);
+      console.error("ASR worker error:", error);
       if (this.onProgress) {
         this.onProgress({
-          status: 'error',
-          error: 'Worker runtime error',
+          status: "error",
+          error: "Worker runtime error",
         });
       }
     };
@@ -79,19 +82,19 @@ export class ASRService {
   /**
    * 获取当前设备类型
    */
-  public getCurrentDevice(): 'webgpu' | 'wasm' {
+  public getCurrentDevice(): "webgpu" | "wasm" {
     return this.currentDevice;
   }
 
   /**
    * 设置设备类型
    */
-  public setDevice(device: 'webgpu' | 'wasm') {
+  public setDevice(device: "webgpu" | "wasm") {
     if (this.currentDevice !== device) {
-      console.log('ASR device type changed:', this.currentDevice, '->', device);
+      console.log("ASR device type changed:", this.currentDevice, "->", device);
       this.currentDevice = device;
       this.isModelLoaded = false; // 重置模型加载状态
-      
+
       // 设备切换时需要重新创建 Worker 以使用新设备
       if (this.worker) {
         this.worker.terminate();
@@ -104,21 +107,21 @@ export class ASRService {
    * 加载模型
    */
   public async loadModel(): Promise<void> {
-    console.log('ASR starting model load:', this.currentDevice);
-    
+    console.log("ASR starting model load:", this.currentDevice);
+
     if (!this.worker) {
       this.createWorker();
     }
 
     return new Promise((resolve, reject) => {
       if (!this.worker) {
-        console.error('ASR worker creation failed');
-        reject(new Error('Worker creation failed'));
+        console.error("ASR worker creation failed");
+        reject(new Error("Worker creation failed"));
         return;
       }
 
       const originalCallback = this.onProgress;
-      
+
       this.onProgress = (progress) => {
         // 转发给原始回调
         if (originalCallback) {
@@ -126,20 +129,22 @@ export class ASRService {
         }
 
         // 处理加载完成
-        if (progress.status === 'loaded') {
-          console.log('ASR model loaded');
+        if (progress.status === "loaded") {
+          console.log("ASR model loaded");
           this.onProgress = originalCallback;
           resolve();
-        } else if (progress.status === 'error') {
-          console.error('ASR model load failed:', progress.error);
+        } else if (progress.status === "error") {
+          console.error("ASR model load failed:", progress.error);
           this.onProgress = originalCallback;
-          reject(new Error(progress.error || 'Model load failed'));
+          reject(new Error(progress.error || "Model load failed"));
         }
       };
 
-      console.log('ASR sending model load message:', { device: this.currentDevice });
+      console.log("ASR sending model load message:", {
+        device: this.currentDevice,
+      });
       this.worker.postMessage({
-        type: 'load',
+        type: "load",
         data: { device: this.currentDevice },
       });
     });
@@ -149,17 +154,17 @@ export class ASRService {
    * 准备模型（分步操作第一步）
    */
   public async prepareModel(): Promise<void> {
-    console.log('ASR preparing model:', this.currentDevice);
-    
+    console.log("ASR preparing model:", this.currentDevice);
+
     if (!this.worker) {
       this.createWorker();
     }
 
     if (!this.isModelLoaded) {
-      console.log('ASR starting model load');
+      console.log("ASR starting model load");
       await this.loadModel();
     } else {
-      console.log('ASR model already loaded, skipping preparation');
+      console.log("ASR model already loaded, skipping preparation");
     }
   }
 
@@ -168,31 +173,36 @@ export class ASRService {
    */
   public async transcribeAudio(
     audioBuffer: ArrayBuffer,
-    language: string = 'en'
+    language: string = "en"
   ): Promise<SubtitleTranscript> {
-    console.log('ASR starting transcription:', { bufferSize: audioBuffer.byteLength, language });
-    
+    console.log("ASR starting transcription:", {
+      bufferSize: audioBuffer.byteLength,
+      language,
+    });
+
     // 检查模型是否已准备好
     if (!this.isModelLoaded || !this.worker) {
-      throw new Error('Model not ready, call prepareModel() first');
+      throw new Error("Model not ready, call prepareModel() first");
     }
-    
+
     // 保存当前语言用于结果格式化
     // this.currentLanguage = language; // TODO: Implement language switching
 
     // 处理音频数据
     const audioData = await processAudioForASR(audioBuffer);
-    console.log('ASR audio data processed:', { audioDataLength: audioData.length });
+    console.log("ASR audio data processed:", {
+      audioDataLength: audioData.length,
+    });
 
     return new Promise((resolve, reject) => {
       if (!this.worker) {
-        console.error('ASR worker unavailable');
-        reject(new Error('Worker unavailable'));
+        console.error("ASR worker unavailable");
+        reject(new Error("Worker unavailable"));
         return;
       }
 
       const originalCallback = this.onProgress;
-      
+
       this.onProgress = (progress) => {
         // 转发给原始回调
         if (originalCallback) {
@@ -200,19 +210,22 @@ export class ASRService {
         }
 
         // 处理识别完成
-        if (progress.status === 'complete' && progress.result) {
+        if (progress.status === "complete" && progress.result) {
           this.onProgress = originalCallback;
           resolve(progress.result);
-        } else if (progress.status === 'error') {
-          console.error('ASR recognition failed:', progress.error);
+        } else if (progress.status === "error") {
+          console.error("ASR recognition failed:", progress.error);
           this.onProgress = originalCallback;
-          reject(new Error(progress.error || 'ASR recognition failed'));
+          reject(new Error(progress.error || "ASR recognition failed"));
         }
       };
 
-      console.log('ASR sending transcription message:', { audioLength: audioData.length, language });
+      console.log("ASR sending transcription message:", {
+        audioLength: audioData.length,
+        language,
+      });
       this.worker.postMessage({
-        type: 'run',
+        type: "run",
         data: { audio: audioData, language },
       });
     });
@@ -223,7 +236,7 @@ export class ASRService {
    */
   public async transcribeAudioWithAutoLoad(
     audioBuffer: ArrayBuffer,
-    language: string = 'en'
+    language: string = "en"
   ): Promise<SubtitleTranscript> {
     await this.prepareModel();
     return this.transcribeAudio(audioBuffer, language);
@@ -240,7 +253,7 @@ export class ASRService {
    * 销毁服务
    */
   public destroy() {
-    console.log('ASR service destroyed');
+    console.log("ASR service destroyed");
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;

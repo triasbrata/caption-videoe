@@ -1,8 +1,15 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import type { FlyCutCaptionLocale } from '@/locales';
-import { defaultLocale } from '@/locales';
-import zhCN from '@/locales/zh_CN';
-import enUS from '@/locales/en_US';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
+import type { FlyCutCaptionLocale } from "@/locales";
+import { defaultLocale } from "@/locales";
+import zhCN from "@/locales/zh_CN";
+import enUS from "@/locales/en_US";
 
 // 语言包注册表
 interface LocaleRegistry {
@@ -11,10 +18,10 @@ interface LocaleRegistry {
 
 // 内置语言包
 const builtinLocales: LocaleRegistry = {
-  'zh': zhCN,
-  'zh-CN': zhCN,
-  'en': enUS,
-  'en-US': enUS,
+  zh: zhCN,
+  "zh-CN": zhCN,
+  en: enUS,
+  "en-US": enUS,
 };
 
 interface LocaleContextType {
@@ -37,23 +44,27 @@ interface LocaleProviderProps {
   onLanguageChange?: (language: string) => void;
 }
 
-function getNestedValue(obj: any, path: string, params?: Record<string, string | number>): string {
-  const keys = path.split('.');
+function getNestedValue(
+  obj: any,
+  path: string,
+  params?: Record<string, string | number>
+): string {
+  const keys = path.split(".");
   let result = obj;
 
   for (const key of keys) {
-    if (result && typeof result === 'object' && key in result) {
+    if (result && typeof result === "object" && key in result) {
       result = result[key];
     } else {
       return path;
     }
   }
 
-  let str = typeof result === 'string' ? result : path;
+  let str = typeof result === "string" ? result : path;
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      str = str.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value));
+      str = str.replace(new RegExp(`\\{${key}\\}`, "g"), String(value));
     }
   }
 
@@ -62,9 +73,9 @@ function getNestedValue(obj: any, path: string, params?: Record<string, string |
 
 export function LocaleProvider({
   children,
-  language = 'zh',
+  language = "zh",
   locale,
-  onLanguageChange
+  onLanguageChange,
 }: LocaleProviderProps) {
   // 自定义语言包注册表
   const [customLocales, setCustomLocales] = useState<LocaleRegistry>({});
@@ -84,40 +95,50 @@ export function LocaleProvider({
     }
 
     // 查找语言包：先查自定义，再查内置，最后使用默认
-    const targetLocale = customLocales[currentLanguage] ||
-                        builtinLocales[currentLanguage] ||
-                        builtinLocales[currentLanguage.split('-')[0]] || // 尝试不带地区的语言代码
-                        defaultLocale;
+    const targetLocale =
+      customLocales[currentLanguage] ||
+      builtinLocales[currentLanguage] ||
+      builtinLocales[currentLanguage.split("-")[0]] || // 尝试不带地区的语言代码
+      defaultLocale;
 
     return targetLocale;
   }, [locale, currentLanguage, customLocales]);
 
   // 设置语言
-  const setLanguage = useCallback((lang: string) => {
-    setCurrentLanguage(lang);
-    onLanguageChange?.(lang);
-  }, [onLanguageChange]);
+  const setLanguage = useCallback(
+    (lang: string) => {
+      setCurrentLanguage(lang);
+      onLanguageChange?.(lang);
+    },
+    [onLanguageChange]
+  );
 
   // 注册自定义语言包
-  const registerLocale = useCallback((lang: string, localeData: FlyCutCaptionLocale) => {
-    setCustomLocales(prev => ({
-      ...prev,
-      [lang]: localeData
-    }));
-  }, []);
+  const registerLocale = useCallback(
+    (lang: string, localeData: FlyCutCaptionLocale) => {
+      setCustomLocales((prev) => ({
+        ...prev,
+        [lang]: localeData,
+      }));
+    },
+    []
+  );
 
   // 获取可用语言列表
   const getAvailableLanguages = useCallback(() => {
     const allLanguages = new Set([
       ...Object.keys(builtinLocales),
-      ...Object.keys(customLocales)
+      ...Object.keys(customLocales),
     ]);
     return Array.from(allLanguages);
   }, [customLocales]);
 
-  const t = useCallback((path: string, params?: Record<string, string | number>): string => {
-    return getNestedValue(currentLocale, path, params);
-  }, [currentLocale]);
+  const t = useCallback(
+    (path: string, params?: Record<string, string | number>): string => {
+      return getNestedValue(currentLocale, path, params);
+    },
+    [currentLocale]
+  );
 
   const contextValue: LocaleContextType = {
     locale: currentLocale,
@@ -139,7 +160,7 @@ export function LocaleProvider({
 export function useLocale(): LocaleContextType {
   const context = useContext(LocaleContext);
   if (!context) {
-    throw new Error('useLocale must be used within a LocaleProvider');
+    throw new Error("useLocale must be used within a LocaleProvider");
   }
   return context;
 }

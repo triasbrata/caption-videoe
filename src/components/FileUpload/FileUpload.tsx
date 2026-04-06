@@ -1,19 +1,19 @@
 // 文件上传组件
 
-import React, { useCallback, useState, useRef } from 'react';
-import { useAppStore } from '@/stores/appStore';
-import { useTranslation } from '@/contexts/LocaleProvider';
-import { 
-  isVideoFile, 
-  formatFileSize, 
-  getVideoInfo, 
-  createVideoURL, 
-  validateFileType 
-} from '@/utils/fileUtils';
-import { readFileAsArrayBuffer } from '@/utils/fileUtils';
-import type { VideoFile } from '@/types/video';
-import { Upload, File, X, CheckCircle2, AlertCircle, Play } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useCallback, useState, useRef } from "react";
+import { useAppStore } from "@/stores/appStore";
+import { useTranslation } from "@/contexts/LocaleProvider";
+import {
+  isVideoFile,
+  formatFileSize,
+  getVideoInfo,
+  createVideoURL,
+  validateFileType,
+} from "@/utils/fileUtils";
+import { readFileAsArrayBuffer } from "@/utils/fileUtils";
+import type { VideoFile } from "@/types/video";
+import { Upload, File, X, CheckCircle2, AlertCircle, Play } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
   className?: string;
@@ -26,7 +26,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
   const setAppError = useAppStore((state) => state.setError);
   const reset = useAppStore((state) => state.reset);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<VideoFile | null>(null);
@@ -34,93 +34,109 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
 
   // 支持的文件类型
   const SUPPORTED_TYPES = [
-    'video/mp4',
-    'video/webm', 
-    'video/ogg',
-    'video/avi',
-    'video/mov',
-    'video/quicktime',
-    'audio/mp3',
-    'audio/wav',
-    'audio/ogg',
-    'audio/m4a',
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "video/avi",
+    "video/mov",
+    "video/quicktime",
+    "audio/mp3",
+    "audio/wav",
+    "audio/ogg",
+    "audio/m4a",
   ];
 
-  const handleFileProcessing = useCallback(async (file: File) => {
-    setError(null);
-    setIsProcessing(true);
+  const handleFileProcessing = useCallback(
+    async (file: File) => {
+      setError(null);
+      setIsProcessing(true);
 
-    try {
-      // 验证文件类型
-      if (!validateFileType(file, SUPPORTED_TYPES)) {
-        throw new Error(`${t('components.fileUpload.invalidFileType')}: ${file.type}`);
+      try {
+        // 验证文件类型
+        if (!validateFileType(file, SUPPORTED_TYPES)) {
+          throw new Error(
+            `${t("components.fileUpload.invalidFileType")}: ${file.type}`
+          );
+        }
+
+        // 读取文件为 ArrayBuffer (用于 ASR)
+        const audioBuffer = await readFileAsArrayBuffer(file);
+
+        let videoFile: VideoFile;
+
+        if (isVideoFile(file)) {
+          // 获取视频信息
+          const videoInfo = await getVideoInfo(file);
+
+          videoFile = {
+            file,
+            url: createVideoURL(file),
+            duration: videoInfo.duration,
+            size: file.size,
+            type: file.type,
+            name: file.name,
+          };
+        } else {
+          // 音频文件，创建一个简化的 VideoFile 对象
+          videoFile = {
+            file,
+            url: createVideoURL(file),
+            duration: 0, // 音频时长需要通过其他方式获取
+            size: file.size,
+            type: file.type,
+            name: file.name,
+          };
+        }
+
+        setUploadedFile(videoFile);
+
+        // 更新应用状态
+        setVideoFile(videoFile);
+
+        // 通知父组件
+        if (onFileSelect) {
+          onFileSelect(videoFile, audioBuffer);
+        }
+      } catch (err) {
+        console.error("文件处理失败:", err);
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : t("messages.fileUpload.uploadFailed");
+        setError(errorMessage);
+        setAppError(errorMessage);
+      } finally {
+        setIsProcessing(false);
       }
+    },
+    [setVideoFile, setAppError, onFileSelect]
+  );
 
-      // 读取文件为 ArrayBuffer (用于 ASR)
-      const audioBuffer = await readFileAsArrayBuffer(file);
+  const handleFileSelect = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return;
 
-      let videoFile: VideoFile;
+      const file = files[0];
+      handleFileProcessing(file);
+    },
+    [handleFileProcessing]
+  );
 
-      if (isVideoFile(file)) {
-        // 获取视频信息
-        const videoInfo = await getVideoInfo(file);
-        
-        videoFile = {
-          file,
-          url: createVideoURL(file),
-          duration: videoInfo.duration,
-          size: file.size,
-          type: file.type,
-          name: file.name,
-        };
-      } else {
-        // 音频文件，创建一个简化的 VideoFile 对象
-        videoFile = {
-          file,
-          url: createVideoURL(file),
-          duration: 0, // 音频时长需要通过其他方式获取
-          size: file.size,
-          type: file.type,
-          name: file.name,
-        };
-      }
+  const handleInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      handleFileSelect(event.target.files);
+    },
+    [handleFileSelect]
+  );
 
-      setUploadedFile(videoFile);
-      
-      // 更新应用状态
-      setVideoFile(videoFile);
-
-      // 通知父组件
-      if (onFileSelect) {
-        onFileSelect(videoFile, audioBuffer);
-      }
-
-    } catch (err) {
-      console.error('文件处理失败:', err);
-      const errorMessage = err instanceof Error ? err.message : t('messages.fileUpload.uploadFailed');
-      setError(errorMessage);
-      setAppError(errorMessage);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [setVideoFile, setAppError, onFileSelect]);
-
-  const handleFileSelect = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    handleFileProcessing(file);
-  }, [handleFileProcessing]);
-
-  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    handleFileSelect(event.target.files);
-  }, [handleFileSelect]);
-
-  const handleDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    setIsDragging(false);
-    handleFileSelect(event.dataTransfer.files);
-  }, [handleFileSelect]);
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      setIsDragging(false);
+      handleFileSelect(event.dataTransfer.files);
+    },
+    [handleFileSelect]
+  );
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -137,7 +153,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX;
     const y = event.clientY;
-    
+
     if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
       setIsDragging(false);
     }
@@ -154,7 +170,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
 
     // 清空文件输入
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   }, [reset]);
 
@@ -164,12 +180,13 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
     setIsProcessing(true);
 
     try {
-      const demoUrl = "https://fly-cut.oss-cn-hangzhou.aliyuncs.com/demo/whisper-timestamps-demo.mp4";
+      const demoUrl =
+        "https://fly-cut.oss-cn-hangzhou.aliyuncs.com/demo/whisper-timestamps-demo.mp4";
 
       // 获取远程视频文件
       const response = await fetch(demoUrl);
       if (!response.ok) {
-        throw new Error('Failed to fetch demo video');
+        throw new Error("Failed to fetch demo video");
       }
 
       const blob = await response.blob();
@@ -178,11 +195,13 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
       // 创建 File 对象，兼容性处理
       let file: File;
       try {
-        file = new window.File([blob], 'whisper-timestamps-demo.mp4', { type: 'video/mp4' });
+        file = new window.File([blob], "whisper-timestamps-demo.mp4", {
+          type: "video/mp4",
+        });
       } catch (e) {
         // 如果 File 构造函数不可用，使用 Blob 并添加必要属性
         const fileBlob = blob as any;
-        fileBlob.name = 'whisper-timestamps-demo.mp4';
+        fileBlob.name = "whisper-timestamps-demo.mp4";
         fileBlob.lastModified = Date.now();
         file = fileBlob as File;
       }
@@ -208,10 +227,10 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
       if (onFileSelect) {
         onFileSelect(videoFile, arrayBuffer);
       }
-
     } catch (err) {
-      console.error('Demo video loading failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load demo video';
+      console.error("Demo video loading failed:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load demo video";
       setError(errorMessage);
       setAppError(errorMessage);
     } finally {
@@ -220,15 +239,15 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
   }, [setVideoFile, setAppError, onFileSelect]);
 
   return (
-    <div className={cn('w-full', className)}>
+    <div className={cn("w-full", className)}>
       <input
         ref={fileInputRef}
         type="file"
-        accept={SUPPORTED_TYPES.join(',')}
+        accept={SUPPORTED_TYPES.join(",")}
         onChange={handleInputChange}
         className="hidden"
       />
-      
+
       {!uploadedFile ? (
         <div
           onClick={handleClick}
@@ -237,29 +256,31 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           className={cn(
-            'flex flex-col items-center justify-center',
-            'border-2 border-dashed rounded-lg p-12 cursor-pointer',
-            'transition-colors duration-200',
-            'hover:bg-muted/50',
-            isDragging 
-              ? 'border-primary bg-primary/10' 
-              : 'border-muted-foreground/25',
-            isProcessing && 'pointer-events-none opacity-50'
+            "flex flex-col items-center justify-center",
+            "border-2 border-dashed rounded-lg p-12 cursor-pointer",
+            "transition-colors duration-200",
+            "hover:bg-muted/50",
+            isDragging
+              ? "border-primary bg-primary/10"
+              : "border-muted-foreground/25",
+            isProcessing && "pointer-events-none opacity-50"
           )}
         >
           {isProcessing ? (
             <>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4" />
-              <p className="text-sm text-muted-foreground">{t('messages.fileUpload.processingFile')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("messages.fileUpload.processingFile")}
+              </p>
             </>
           ) : (
             <>
               <Upload className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-lg font-medium text-center mb-2">
-                {t('components.fileUpload.dragDropText')}
+                {t("components.fileUpload.dragDropText")}
               </p>
               <p className="text-sm text-muted-foreground text-center mb-6">
-                {t('components.fileUpload.supportedFormats')}
+                {t("components.fileUpload.supportedFormats")}
                 <br />
                 MP4, WebM, AVI, MOV, MP3, WAV, OGG
               </p>
@@ -267,7 +288,9 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
               {/* 示例视频按钮 */}
               <div className="flex items-center space-x-4">
                 <div className="flex-1 h-px bg-border"></div>
-                <span className="text-xs text-muted-foreground">{t('components.fileUpload.or')}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("components.fileUpload.or")}
+                </span>
                 <div className="flex-1 h-px bg-border"></div>
               </div>
 
@@ -280,7 +303,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
                 className="mt-4 inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-primary bg-primary/10 border border-primary/20 rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play className="h-4 w-4" />
-                <span>{t('components.fileUpload.useDemoVideo')}</span>
+                <span>{t("components.fileUpload.useDemoVideo")}</span>
               </button>
             </>
           )}
@@ -296,40 +319,51 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                 )}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <p className="font-medium truncate">{uploadedFile.name}</p>
                 </div>
-                
+
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>{t('components.fileUpload.fileSize')}: {formatFileSize(uploadedFile.size)}</p>
+                  <p>
+                    {t("components.fileUpload.fileSize")}:{" "}
+                    {formatFileSize(uploadedFile.size)}
+                  </p>
                   {uploadedFile.duration > 0 && (
-                    <p>{t('components.fileUpload.duration')}: {Math.floor(uploadedFile.duration / 60)}:{Math.floor(uploadedFile.duration % 60).toString().padStart(2, '0')}</p>
+                    <p>
+                      {t("components.fileUpload.duration")}:{" "}
+                      {Math.floor(uploadedFile.duration / 60)}:
+                      {Math.floor(uploadedFile.duration % 60)
+                        .toString()
+                        .padStart(2, "0")}
+                    </p>
                   )}
-                  <p>{t('components.fileUpload.fileType')}: {uploadedFile.type}</p>
+                  <p>
+                    {t("components.fileUpload.fileType")}: {uploadedFile.type}
+                  </p>
                 </div>
-                
+
                 {error && (
                   <p className="text-sm text-destructive mt-2">{error}</p>
                 )}
               </div>
             </div>
-            
+
             <button
               onClick={clearFile}
               className="flex-shrink-0 p-1 hover:bg-muted rounded-md transition-colors"
-              title={t('common.delete')}
+              title={t("common.delete")}
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          
+
           {!error && (
             <div className="mt-4 text-center">
               <p className="text-sm text-green-600">
-                {t('components.fileUpload.fileUploaded')}
+                {t("components.fileUpload.fileUploaded")}
               </p>
             </div>
           )}

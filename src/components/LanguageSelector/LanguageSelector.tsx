@@ -1,12 +1,12 @@
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Languages, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Languages, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LanguageOption {
   code: string;
@@ -16,7 +16,7 @@ interface LanguageOption {
 
 interface LanguageSelectorProps {
   className?: string;
-  variant?: 'button' | 'minimal';
+  variant?: "button" | "minimal";
   showText?: boolean;
   currentLanguage: string;
   languages: LanguageOption[];
@@ -25,16 +25,18 @@ interface LanguageSelectorProps {
 
 export function LanguageSelector({
   className,
-  variant = 'button',
+  variant = "button",
   showText = true,
   currentLanguage,
   languages,
-  onLanguageChange
+  onLanguageChange,
 }: LanguageSelectorProps) {
-  const currentLangInfo = languages.find(lang =>
-    lang.code === currentLanguage ||
-    lang.code === currentLanguage.split('-')[0]
-  ) || languages[0];
+  const currentLangInfo =
+    languages.find(
+      (lang) =>
+        lang.code === currentLanguage ||
+        lang.code === currentLanguage.split("-")[0]
+    ) || languages[0];
 
   const handleLanguageChange = (languageCode: string) => {
     onLanguageChange(languageCode);
@@ -43,7 +45,7 @@ export function LanguageSelector({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {variant === 'minimal' ? (
+        {variant === "minimal" ? (
           <Button
             variant="ghost"
             size="sm"
@@ -64,9 +66,7 @@ export function LanguageSelector({
           >
             <Languages className="h-4 w-4" />
             {showText && (
-              <span className="ml-2">
-                {currentLangInfo.nativeName}
-              </span>
+              <span className="ml-2">{currentLangInfo.nativeName}</span>
             )}
           </Button>
         )}
@@ -80,9 +80,12 @@ export function LanguageSelector({
           >
             <div className="flex flex-col">
               <span className="font-medium">{language.nativeName}</span>
-              <span className="text-xs text-muted-foreground">{language.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {language.name}
+              </span>
             </div>
-            {(currentLanguage === language.code || currentLanguage.startsWith(language.code)) && (
+            {(currentLanguage === language.code ||
+              currentLanguage.startsWith(language.code)) && (
               <Check className="h-4 w-4 text-primary" />
             )}
           </DropdownMenuItem>

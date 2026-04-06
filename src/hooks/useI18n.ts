@@ -1,19 +1,19 @@
-import { useTranslation } from 'react-i18next';
-import { useCallback } from 'react';
-import type { SupportedLanguage, LanguageOption } from '@/types/i18n';
+import { useTranslation } from "react-i18next";
+import { useCallback } from "react";
+import type { SupportedLanguage, LanguageOption } from "@/types/i18n";
 
 // 支持的语言列表
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   {
-    code: 'zh',
-    name: 'Chinese',
-    nativeName: 'Chinese'
+    code: "zh",
+    name: "Chinese",
+    nativeName: "Chinese",
   },
   {
-    code: 'en',
-    name: 'English',
-    nativeName: 'English'
-  }
+    code: "en",
+    name: "English",
+    nativeName: "English",
+  },
 ];
 
 /**
@@ -22,50 +22,59 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
  */
 export function useI18n() {
   const { t, i18n } = useTranslation();
-  
+
   // 当前语言
   const currentLanguage = i18n.language as SupportedLanguage;
-  
+
   // 切换语言
-  const changeLanguage = useCallback(async (language: SupportedLanguage) => {
-    try {
-      await i18n.changeLanguage(language);
-    } catch (error) {
-      console.error('Failed to change language:', error);
-    }
-  }, [i18n]);
-  
+  const changeLanguage = useCallback(
+    async (language: SupportedLanguage) => {
+      try {
+        await i18n.changeLanguage(language);
+      } catch (error) {
+        console.error("Failed to change language:", error);
+      }
+    },
+    [i18n]
+  );
+
   // 获取当前语言信息
   const getCurrentLanguageInfo = useCallback((): LanguageOption => {
-    return SUPPORTED_LANGUAGES.find(lang => lang.code === currentLanguage) || SUPPORTED_LANGUAGES[0];
+    return (
+      SUPPORTED_LANGUAGES.find((lang) => lang.code === currentLanguage) ||
+      SUPPORTED_LANGUAGES[0]
+    );
   }, [currentLanguage]);
-  
+
   // 检查是否为指定语言
-  const isLanguage = useCallback((language: SupportedLanguage): boolean => {
-    return currentLanguage === language;
-  }, [currentLanguage]);
-  
+  const isLanguage = useCallback(
+    (language: SupportedLanguage): boolean => {
+      return currentLanguage === language;
+    },
+    [currentLanguage]
+  );
+
   // 获取浏览器默认语言
   const getBrowserLanguage = useCallback((): SupportedLanguage => {
     const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith('zh')) {
-      return 'zh';
+    if (browserLang.startsWith("zh")) {
+      return "zh";
     }
-    return 'en'; // 默认英文
+    return "en"; // 默认英文
   }, []);
-  
+
   // 格式化带参数的翻译
-  const formatTranslation = useCallback((
-    key: string, 
-    params?: Record<string, string | number>
-  ): string => {
-    return t(key, params);
-  }, [t]);
-  
+  const formatTranslation = useCallback(
+    (key: string, params?: Record<string, string | number>): string => {
+      return t(key, params);
+    },
+    [t]
+  );
+
   return {
     // 翻译函数
     t,
-    
+
     // 语言相关
     currentLanguage,
     supportedLanguages: SUPPORTED_LANGUAGES,
@@ -73,12 +82,12 @@ export function useI18n() {
     getCurrentLanguageInfo,
     isLanguage,
     getBrowserLanguage,
-    
+
     // 工具函数
     formatTranslation,
-    
+
     // i18n 实例（高级用法）
-    i18n
+    i18n,
   };
 }
 

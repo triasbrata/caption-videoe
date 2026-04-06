@@ -1,33 +1,46 @@
 // FlyCut Caption - 智能视频字幕裁剪工具
 
-import { useCallback, useMemo, useState, useRef, useEffect } from 'react';
-import { useAppStore } from '@/stores/appStore';
-import { useChunks } from '@/stores/historyStore';
-import { useThemeStore } from '@/stores/themeStore';
-import { useHotkeys } from '@/hooks/useHotkeys';
-import { LocaleProvider, useTranslation, useLocale } from '@/contexts/LocaleProvider';
-import type { FlyCutCaptionLocale } from '@/locales';
-import { FileUpload } from '@/components/FileUpload/FileUpload';
-import { EnhancedVideoPlayer } from '@/components/VideoPlayer/EnhancedVideoPlayer';
-import type { EnhancedVideoPlayerRef } from '@/components/VideoPlayer/EnhancedVideoPlayer';
-import { SubtitleList } from '@/components/SubtitleEditor/SubtitleList';
-import { ASRPanel } from '@/components/ProcessingPanel/ASRPanel';
-import { ExportDialog, type VideoExportOptions } from '@/components/ExportPanel/ExportDialog';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { ThemeInitializer } from '@/components/ThemeInitializer';
-import { ToastContainer, MessageCenterButton } from '@/components/MessageCenter';
-import { LanguageSelector } from '@/components/LanguageSelector';
-import { SubtitleSettings, defaultSubtitleStyle } from '@/components/SubtitleSettings';
-import type { SubtitleStyle } from '@/components/SubtitleSettings';
+import { useCallback, useMemo, useState, useRef, useEffect } from "react";
+import { useAppStore } from "@/stores/appStore";
+import { useChunks } from "@/stores/historyStore";
+import { useThemeStore } from "@/stores/themeStore";
+import { useHotkeys } from "@/hooks/useHotkeys";
+import {
+  LocaleProvider,
+  useTranslation,
+  useLocale,
+} from "@/contexts/LocaleProvider";
+import type { FlyCutCaptionLocale } from "@/locales";
+import { FileUpload } from "@/components/FileUpload/FileUpload";
+import { EnhancedVideoPlayer } from "@/components/VideoPlayer/EnhancedVideoPlayer";
+import type { EnhancedVideoPlayerRef } from "@/components/VideoPlayer/EnhancedVideoPlayer";
+import { SubtitleList } from "@/components/SubtitleEditor/SubtitleList";
+import { ASRPanel } from "@/components/ProcessingPanel/ASRPanel";
+import {
+  ExportDialog,
+  type VideoExportOptions,
+} from "@/components/ExportPanel/ExportDialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeInitializer } from "@/components/ThemeInitializer";
+import {
+  ToastContainer,
+  MessageCenterButton,
+} from "@/components/MessageCenter";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import {
+  SubtitleSettings,
+  defaultSubtitleStyle,
+} from "@/components/SubtitleSettings";
+import type { SubtitleStyle } from "@/components/SubtitleSettings";
 import {
   useStartVideoProcessing,
   useUpdateVideoProcessingProgress,
   useCompleteVideoProcessing,
-  useErrorVideoProcessing
-} from '@/stores/messageStore';
-import { UnifiedVideoProcessor } from '@/services/UnifiedVideoProcessor';
-import { saveFile } from '@/utils/createFileWriter';
-import { Scissors, FileText, Upload, Download, Video } from 'lucide-react';
+  useErrorVideoProcessing,
+} from "@/stores/messageStore";
+import { UnifiedVideoProcessor } from "@/services/UnifiedVideoProcessor";
+import { saveFile } from "@/utils/createFileWriter";
+import { Scissors, FileText, Upload, Download, Video } from "lucide-react";
 import {
   Menubar,
   MenubarContent,
@@ -36,10 +49,17 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import type { VideoFile, VideoSegment, VideoProcessingProgress } from '@/types/video';
-import type { VideoProcessingOptions, VideoEngineType } from '@/types/videoEngine';
-import type { FlyCutCaptionProps, FlyCutCaptionConfig } from './types';
-import { defaultConfig } from './types';
+import type {
+  VideoFile,
+  VideoSegment,
+  VideoProcessingProgress,
+} from "@/types/video";
+import type {
+  VideoProcessingOptions,
+  VideoEngineType,
+} from "@/types/videoEngine";
+import type { FlyCutCaptionProps, FlyCutCaptionConfig } from "./types";
+import { defaultConfig } from "./types";
 
 /**
  * FlyCut Caption React Component
@@ -97,15 +117,18 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
   } = props;
 
   // Merge user config with defaults
-  const mergedConfig = useMemo(() => ({
-    ...defaultConfig,
-    ...config
-  }), [config]);
+  const mergedConfig = useMemo(
+    () => ({
+      ...defaultConfig,
+      ...config,
+    }),
+    [config]
+  );
 
-  const stage = useAppStore(state => state.stage);
-  const videoFile = useAppStore(state => state.videoFile);
-  const error = useAppStore(state => state.error);
-  const isLoading = useAppStore(state => state.isLoading);
+  const stage = useAppStore((state) => state.stage);
+  const videoFile = useAppStore((state) => state.videoFile);
+  const error = useAppStore((state) => state.error);
+  const isLoading = useAppStore((state) => state.isLoading);
   const chunks = useChunks();
 
   // 主题管理
@@ -117,9 +140,9 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
 
   // 语言选项
   const languageOptions = [
-    { code: 'zh', name: '中文', nativeName: '中文' },
-    { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'ja', name: 'Japanese', nativeName: '日本語' }
+    { code: "zh", name: "中文", nativeName: "中文" },
+    { code: "en", name: "English", nativeName: "English" },
+    { code: "ja", name: "Japanese", nativeName: "日本語" },
   ];
 
   // Component is ready, render the main content
@@ -128,22 +151,22 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
   useEffect(() => {
     // Initialize component
     const timer = setTimeout(() => {
-      onReady?.()
-    }, 100) // Small delay to ensure component is fully mounted
+      onReady?.();
+    }, 100); // Small delay to ensure component is fully mounted
 
-    return () => clearTimeout(timer)
+    return () => clearTimeout(timer);
   }, [onReady]);
 
   // Apply theme configuration
   useEffect(() => {
-    if (mergedConfig.theme && mergedConfig.theme !== 'auto') {
-      const root = document.documentElement
+    if (mergedConfig.theme && mergedConfig.theme !== "auto") {
+      const root = document.documentElement;
 
       // Apply theme globally (for consistency with main app)
-      if (mergedConfig.theme === 'dark') {
-        root.classList.add('dark')
+      if (mergedConfig.theme === "dark") {
+        root.classList.add("dark");
       } else {
-        root.classList.remove('dark')
+        root.classList.remove("dark");
       }
     }
   }, [mergedConfig.theme]);
@@ -151,12 +174,12 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
   // 初始化主题 - 确保在客户端正确应用
   useEffect(() => {
     // 确保主题正确应用到 DOM
-    const applyTheme = (theme: 'light' | 'dark') => {
+    const applyTheme = (theme: "light" | "dark") => {
       const root = document.documentElement;
-      if (theme === 'dark') {
-        root.classList.add('dark');
+      if (theme === "dark") {
+        root.classList.add("dark");
       } else {
-        root.classList.remove('dark');
+        root.classList.remove("dark");
       }
     };
 
@@ -177,7 +200,7 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
 
   // 在组件层用 useMemo 做过滤，保证只有 chunks 引用变更时才重新计算
   const activeChunks = useMemo(
-    () => chunks.filter(c => !c.deleted),
+    () => chunks.filter((c) => !c.deleted),
     [chunks]
   );
 
@@ -186,100 +209,131 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
     () => activeChunks.length > 0,
     [activeChunks.length]
   );
-  const setCurrentTime = useAppStore(state => state.setCurrentTime);
-  const setStage = useAppStore(state => state.setStage);
-  const setError = useAppStore(state => state.setError);
+  const setCurrentTime = useAppStore((state) => state.setCurrentTime);
+  const setStage = useAppStore((state) => state.setStage);
+  const setError = useAppStore((state) => state.setError);
 
   // 视频处理相关状态
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentProcessingMessageId, setCurrentProcessingMessageId] = useState<string | null>(null);
-  const [currentEngine, setCurrentEngine] = useState<VideoEngineType | null>(null);
+  const [currentProcessingMessageId, setCurrentProcessingMessageId] = useState<
+    string | null
+  >(null);
+  const [currentEngine, setCurrentEngine] = useState<VideoEngineType | null>(
+    null
+  );
   const processorRef = useRef<UnifiedVideoProcessor | null>(null);
 
   // 导出对话框状态
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [exportDialogType, setExportDialogType] = useState<'subtitles' | 'video'>('video');
+  const [exportDialogType, setExportDialogType] = useState<
+    "subtitles" | "video"
+  >("video");
 
   // 字幕样式状态
-  const [subtitleStyle, setSubtitleStyle] = useState<SubtitleStyle>(defaultSubtitleStyle);
+  const [subtitleStyle, setSubtitleStyle] =
+    useState<SubtitleStyle>(defaultSubtitleStyle);
 
   // 视频播放器引用
   const videoPlayerRef = useRef<EnhancedVideoPlayerRef>(null);
 
-
   // const availableEngines = UnifiedVideoProcessor.getSupportedEngines();
 
-  const handleProgress = useCallback((progressData: VideoProcessingProgress) => {
-    if (currentProcessingMessageId) {
-      updateVideoProcessingProgress(currentProcessingMessageId, progressData);
-    }
-    onProgress?.(progressData.stage, progressData.progress);
-  }, [currentProcessingMessageId, updateVideoProcessingProgress, onProgress]);
+  const handleProgress = useCallback(
+    (progressData: VideoProcessingProgress) => {
+      if (currentProcessingMessageId) {
+        updateVideoProcessingProgress(currentProcessingMessageId, progressData);
+      }
+      onProgress?.(progressData.stage, progressData.progress);
+    },
+    [currentProcessingMessageId, updateVideoProcessingProgress, onProgress]
+  );
 
-  const processVideo = useCallback(async (
-    videoFile: VideoFile,
-    segments: VideoSegment[],
-    options?: VideoProcessingOptions
-  ) => {
-    if (isProcessing) {
-      console.warn(t('messages.fileUpload.processingFile'));
-      return;
-    }
-
-    let messageId: string | null = null;
-
-    try {
-      setIsProcessing(true);
-
-      // 开始视频处理消息
-      messageId = startVideoProcessing(t('messages.fileUpload.processingFile'));
-      setCurrentProcessingMessageId(messageId);
-
-      // 创建处理器（如果不存在）
-      if (!processorRef.current) {
-        processorRef.current = new UnifiedVideoProcessor(handleProgress);
+  const processVideo = useCallback(
+    async (
+      videoFile: VideoFile,
+      segments: VideoSegment[],
+      options?: VideoProcessingOptions
+    ) => {
+      if (isProcessing) {
+        console.warn(t("messages.fileUpload.processingFile"));
+        return;
       }
 
-      // 初始化处理器（如果还没有初始化或需要切换引擎）
-      const engineType = await processorRef.current.initialize(
-        videoFile,
-        options?.engine || currentEngine || undefined
-      );
-      setCurrentEngine(engineType);
+      let messageId: string | null = null;
 
-      // 处理视频
-      const resultBlob = await processorRef.current.processVideo(segments, options || {
-        quality: 'medium',
-        preserveAudio: true
-      });
+      try {
+        setIsProcessing(true);
 
-      // 完成处理
-      if (messageId) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -1);
-        const filename = `cut_video_${timestamp}.${options?.format || 'mp4'}`;
-        completeVideoProcessing(messageId, resultBlob, filename);
-        onVideoProcessed?.(resultBlob, filename);
+        // 开始视频处理消息
+        messageId = startVideoProcessing(
+          t("messages.fileUpload.processingFile")
+        );
+        setCurrentProcessingMessageId(messageId);
+
+        // 创建处理器（如果不存在）
+        if (!processorRef.current) {
+          processorRef.current = new UnifiedVideoProcessor(handleProgress);
+        }
+
+        // 初始化处理器（如果还没有初始化或需要切换引擎）
+        const engineType = await processorRef.current.initialize(
+          videoFile,
+          options?.engine || currentEngine || undefined
+        );
+        setCurrentEngine(engineType);
+
+        // 处理视频
+        const resultBlob = await processorRef.current.processVideo(
+          segments,
+          options || {
+            quality: "medium",
+            preserveAudio: true,
+          }
+        );
+
+        // 完成处理
+        if (messageId) {
+          const timestamp = new Date()
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .slice(0, -1);
+          const filename = `cut_video_${timestamp}.${options?.format || "mp4"}`;
+          completeVideoProcessing(messageId, resultBlob, filename);
+          onVideoProcessed?.(resultBlob, filename);
+        }
+      } catch (error) {
+        console.error("视频处理失败:", error);
+        console.error("视频处理错误详情:", {
+          videoFile: videoFile?.name,
+          segments: segments?.length,
+          options,
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
+        if (messageId) {
+          errorVideoProcessing(
+            messageId,
+            error instanceof Error ? error.message : "未知错误"
+          );
+        }
+        onError?.(error instanceof Error ? error : new Error("Unknown error"));
+      } finally {
+        setIsProcessing(false);
+        setCurrentProcessingMessageId(null);
       }
-
-    } catch (error) {
-      console.error('视频处理失败:', error);
-      console.error('视频处理错误详情:', {
-        videoFile: videoFile?.name,
-        segments: segments?.length,
-        options,
-        stack: error instanceof Error ? error.stack : undefined
-      });
-
-      if (messageId) {
-        errorVideoProcessing(messageId, error instanceof Error ? error.message : '未知错误');
-      }
-      onError?.(error instanceof Error ? error : new Error('Unknown error'));
-    } finally {
-      setIsProcessing(false);
-      setCurrentProcessingMessageId(null);
-    }
-  }, [isProcessing, currentEngine, startVideoProcessing, completeVideoProcessing, errorVideoProcessing, handleProgress, onVideoProcessed, onError, t]);
-
+    },
+    [
+      isProcessing,
+      currentEngine,
+      startVideoProcessing,
+      completeVideoProcessing,
+      errorVideoProcessing,
+      handleProgress,
+      onVideoProcessed,
+      onError,
+      t,
+    ]
+  );
 
   // 格式化时间为 SRT 格式
   const formatTime = useCallback((seconds: number) => {
@@ -287,52 +341,64 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
     const ms = Math.floor((seconds % 1) * 1000);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")},${ms.toString().padStart(3, "0")}`;
   }, []);
 
-
   // 导出字幕
-  const handleExportSubtitles = useCallback(async (format: 'srt' | 'json') => {
-    const keptChunks = chunks.filter(chunk => !chunk.deleted);
-    if (keptChunks.length === 0) {
-      console.warn(t('messages.subtitle.emptySubtitleText'));
-      return;
-    }
+  const handleExportSubtitles = useCallback(
+    async (format: "srt" | "json") => {
+      const keptChunks = chunks.filter((chunk) => !chunk.deleted);
+      if (keptChunks.length === 0) {
+        console.warn(t("messages.subtitle.emptySubtitleText"));
+        return;
+      }
 
-    let content: string;
-    let filename: string;
-    let types: Array<{
-      description: string;
-      accept: Record<string, string[]>;
-    }>;
+      let content: string;
+      let filename: string;
+      let types: Array<{
+        description: string;
+        accept: Record<string, string[]>;
+      }>;
 
-    if (format === 'srt') {
-      content = keptChunks.map((chunk, index) => {
-        const start = formatTime(chunk.timestamp[0]);
-        const end = formatTime(chunk.timestamp[1]);
-        return `${index + 1}\n${start} --> ${end}\n${chunk.text}\n`;
-      }).join('\n');
-      filename = `subtitles_${Date.now()}.srt`;
-      types = [{
-        description: 'SRT Subtitle files',
-        accept: { 'text/srt': ['.srt'] },
-      }];
-    } else {
-      content = JSON.stringify(keptChunks.map(chunk => ({
-        text: chunk.text,
-        timestamp: chunk.timestamp,
-      })), null, 2);
-      filename = `subtitles_${Date.now()}.json`;
-      types = [{
-        description: 'JSON files',
-        accept: { 'application/json': ['.json'] },
-      }];
-    }
+      if (format === "srt") {
+        content = keptChunks
+          .map((chunk, index) => {
+            const start = formatTime(chunk.timestamp[0]);
+            const end = formatTime(chunk.timestamp[1]);
+            return `${index + 1}\n${start} --> ${end}\n${chunk.text}\n`;
+          })
+          .join("\n");
+        filename = `subtitles_${Date.now()}.srt`;
+        types = [
+          {
+            description: "SRT Subtitle files",
+            accept: { "text/srt": [".srt"] },
+          },
+        ];
+      } else {
+        content = JSON.stringify(
+          keptChunks.map((chunk) => ({
+            text: chunk.text,
+            timestamp: chunk.timestamp,
+          })),
+          null,
+          2
+        );
+        filename = `subtitles_${Date.now()}.json`;
+        types = [
+          {
+            description: "JSON files",
+            accept: { "application/json": [".json"] },
+          },
+        ];
+      }
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    await saveFile(blob, filename, types);
-    onExportComplete?.(blob, filename);
-  }, [chunks, formatTime, onExportComplete, t]);
+      const blob = new Blob([content], { type: "text/plain" });
+      await saveFile(blob, filename, types);
+      onExportComplete?.(blob, filename);
+    },
+    [chunks, formatTime, onExportComplete, t]
+  );
 
   // 重新上传文件
   const handleReupload = useCallback(() => {
@@ -340,68 +406,78 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
     setVideoFile(null);
   }, []);
 
-
-  const handleFileSelect = useCallback((selectedVideoFile: VideoFile) => {
-    console.log('文件选择完成:', selectedVideoFile);
-    // 使用 appStore 的 setVideoFile 方法，它会自动切换到 'transcribe' 阶段
-    const setVideoFile = useAppStore.getState().setVideoFile;
-    setVideoFile(selectedVideoFile);
-    onFileSelected?.(selectedVideoFile);
-  }, [onFileSelected]);
+  const handleFileSelect = useCallback(
+    (selectedVideoFile: VideoFile) => {
+      console.log("文件选择完成:", selectedVideoFile);
+      // 使用 appStore 的 setVideoFile 方法，它会自动切换到 'transcribe' 阶段
+      const setVideoFile = useAppStore.getState().setVideoFile;
+      setVideoFile(selectedVideoFile);
+      onFileSelected?.(selectedVideoFile);
+    },
+    [onFileSelected]
+  );
 
   // 从字幕生成视频片段 - 包含所有片段的删除状态和字幕信息
   const videoSegments = useMemo((): VideoSegment[] => {
-    return chunks.map(chunk => ({
+    return chunks.map((chunk) => ({
       start: chunk.timestamp[0],
       end: chunk.timestamp[1],
       keep: !chunk.deleted,
       text: chunk.text,
-      id: chunk.id
+      id: chunk.id,
     }));
   }, [chunks]);
 
   // 开始视频处理
-  const handleStartProcessing = useCallback(async (options: VideoProcessingOptions) => {
-    if (!videoFile) {
-      console.error(t('messages.video.videoLoadFailed'));
-      return;
-    }
+  const handleStartProcessing = useCallback(
+    async (options: VideoProcessingOptions) => {
+      if (!videoFile) {
+        console.error(t("messages.video.videoLoadFailed"));
+        return;
+      }
 
-    try {
-      await processVideo(videoFile, videoSegments, options);
-    } catch (error) {
-      console.error('视频处理失败:', error);
-      console.error('App视频处理错误详情:', {
-        videoFile: videoFile?.name,
-        segments: videoSegments?.length,
-        error
-      });
-      setError(`${t('messages.export.exportFailed')}: ${error instanceof Error ? error.message : t('common.error')}`);
-    }
-  }, [videoFile, videoSegments, processVideo, setStage, setError, t]);
+      try {
+        await processVideo(videoFile, videoSegments, options);
+      } catch (error) {
+        console.error("视频处理失败:", error);
+        console.error("App视频处理错误详情:", {
+          videoFile: videoFile?.name,
+          segments: videoSegments?.length,
+          error,
+        });
+        setError(
+          `${t("messages.export.exportFailed")}: ${error instanceof Error ? error.message : t("common.error")}`
+        );
+      }
+    },
+    [videoFile, videoSegments, processVideo, setStage, setError, t]
+  );
 
   // 打开字幕导出对话框
   const handleOpenSubtitleExportDialog = useCallback(() => {
-    setExportDialogType('subtitles');
+    setExportDialogType("subtitles");
     setExportDialogOpen(true);
   }, []);
 
   // 打开视频导出对话框
   const handleOpenVideoExportDialog = useCallback(() => {
-    setExportDialogType('video');
+    setExportDialogType("video");
     setExportDialogOpen(true);
   }, []);
 
   // 处理视频导出配置
-  const handleVideoExport = useCallback(async (options: VideoExportOptions) => {
-    await handleStartProcessing({
-      format: options.format === 'mp4' ? 'mp4' : 'webm',
-      quality: options.quality,
-      preserveAudio: true,
-      subtitleProcessing: options.subtitleProcessing,
-      subtitleStyle: subtitleStyle, // 传递字幕样式配置
-    });
-  }, [handleStartProcessing, subtitleStyle]);
+  const handleVideoExport = useCallback(
+    async (options: VideoExportOptions) => {
+      await handleStartProcessing({
+        format: options.format === "mp4" ? "mp4" : "webm",
+        quality: options.quality,
+        preserveAudio: true,
+        subtitleProcessing: options.subtitleProcessing,
+        subtitleStyle: subtitleStyle, // 传递字幕样式配置
+      });
+    },
+    [handleStartProcessing, subtitleStyle]
+  );
 
   // 监听字幕变化并通知外部
   useEffect(() => {
@@ -413,33 +489,38 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
     return (
       <div className="flex flex-col h-full overflow-hidden">
         {/* 配置面板 */}
-        {stage === 'transcribe' && <div className="flex-shrink-0 p-4">
-          <div className="space-y-4">
-            {/* 语言选择 */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">{t('components.asrPanel.language')}</label>
-              <ASRPanel />
+        {stage === "transcribe" && (
+          <div className="flex-shrink-0 p-4">
+            <div className="space-y-4">
+              {/* 语言选择 */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("components.asrPanel.language")}
+                </label>
+                <ASRPanel />
+              </div>
             </div>
           </div>
-        </div>}
+        )}
 
         {/* 字幕编辑器 */}
-        {stage === 'edit' && <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4">
-            <h3 className="text-sm font-medium flex items-center space-x-2">
-              <FileText className="h-4 w-4" />
-              <span>{t('components.subtitleEditor.title')}</span>
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              {t('components.subtitleEditor.title')}
-            </p>
-          </div>
+        {stage === "edit" && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="p-4">
+              <h3 className="text-sm font-medium flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>{t("components.subtitleEditor.title")}</span>
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("components.subtitleEditor.title")}
+              </p>
+            </div>
 
-          <div className="flex-1 overflow-hidden">
-            <SubtitleList videoPlayerRef={videoPlayerRef} />
+            <div className="flex-1 overflow-hidden">
+              <SubtitleList videoPlayerRef={videoPlayerRef} />
+            </div>
           </div>
-        </div>}
-
+        )}
       </div>
     );
   };
@@ -457,14 +538,18 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
                   <Upload className="h-16 w-16 text-primary" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold mb-4">{t('components.fileUpload.selectFile')}</h2>
-              <p className="text-muted-foreground text-sm" dangerouslySetInnerHTML={{ __html: t('components.fileUpload.dragDropText') }} />
+              <h2 className="text-2xl font-bold mb-4">
+                {t("components.fileUpload.selectFile")}
+              </h2>
+              <p
+                className="text-muted-foreground text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: t("components.fileUpload.dragDropText"),
+                }}
+              />
             </div>
 
-            <FileUpload
-              onFileSelect={handleFileSelect}
-              className="w-full"
-            />
+            <FileUpload onFileSelect={handleFileSelect} className="w-full" />
           </div>
         </div>
       );
@@ -491,7 +576,7 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
               {isLoading && (
                 <div className="px-2 py-1 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded text-xs text-blue-600 flex items-center space-x-1">
                   <div className="animate-spin rounded-full h-3 w-3 border-b border-blue-600" />
-                  <span>{t('common.loading')}</span>
+                  <span>{t("common.loading")}</span>
                 </div>
               )}
             </div>
@@ -523,7 +608,6 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
             </div>
           </div> */}
         </div>
-
       </div>
     );
   };
@@ -535,12 +619,16 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
       return (
         <div className="flex flex-col h-full">
           <div className="flex-shrink-0 p-4 border-b">
-            <h2 className="text-sm font-semibold">{t('components.subtitleEditor.subtitleStyle')}</h2>
-            <p className="text-xs text-muted-foreground mt-1">{t('components.subtitleEditor.subtitleStyle')}</p>
+            <h2 className="text-sm font-semibold">
+              {t("components.subtitleEditor.subtitleStyle")}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("components.subtitleEditor.subtitleStyle")}
+            </p>
           </div>
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center text-muted-foreground">
-              <div className="text-xs opacity-60">{t('common.loading')}</div>
+              <div className="text-xs opacity-60">{t("common.loading")}</div>
             </div>
           </div>
         </div>
@@ -562,19 +650,21 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
 
   // Determine wrapper theme class
   const getThemeClass = () => {
-    if (mergedConfig.theme === 'dark') return 'dark'
-    if (mergedConfig.theme === 'light') return ''
+    if (mergedConfig.theme === "dark") return "dark";
+    if (mergedConfig.theme === "light") return "";
 
     // Auto theme: detect system preference
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : ''
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "";
     }
-    return ''
+    return "";
   };
 
   return (
     <div
-      className={`flycut-caption-wrapper ${getThemeClass()} ${className || ''}`}
+      className={`flycut-caption-wrapper ${getThemeClass()} ${className || ""}`}
       style={style}
       {...otherProps}
     >
@@ -588,8 +678,10 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
                   <Scissors className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold">{'FlyCut Caption'}</h1>
-                  <p className="text-xs text-muted-foreground">{'Intelligent video subtitle cropping tool'}</p>
+                  <h1 className="text-lg font-bold">{"FlyCut Caption"}</h1>
+                  <p className="text-xs text-muted-foreground">
+                    {"Intelligent video subtitle cropping tool"}
+                  </p>
                 </div>
               </div>
 
@@ -627,12 +719,14 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
                       disabled={false}
                     >
                       <Upload className="h-4 w-4 mr-1.5" />
-                      <span className="hidden sm:inline">{t('common.upload')}</span>
+                      <span className="hidden sm:inline">
+                        {t("common.upload")}
+                      </span>
                     </MenubarTrigger>
                     <MenubarContent align="start" className="min-w-[160px]">
                       <MenubarItem onClick={handleReupload}>
                         <Upload className="h-4 w-4 mr-2" />
-                        {t('common.upload')}
+                        {t("common.upload")}
                       </MenubarItem>
                     </MenubarContent>
                   </MenubarMenu>
@@ -644,12 +738,14 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
                       disabled={!hasActiveChunks}
                     >
                       <FileText className="h-4 w-4 mr-1.5" />
-                      <span className="hidden sm:inline">{t('components.subtitleEditor.title')}</span>
+                      <span className="hidden sm:inline">
+                        {t("components.subtitleEditor.title")}
+                      </span>
                     </MenubarTrigger>
                     <MenubarContent align="start" className="min-w-[160px]">
                       <MenubarItem onClick={handleOpenSubtitleExportDialog}>
                         <FileText className="h-4 w-4 mr-2" />
-                        {t('components.exportDialog.exportSubtitle')}
+                        {t("components.exportDialog.exportSubtitle")}
                       </MenubarItem>
                     </MenubarContent>
                   </MenubarMenu>
@@ -658,17 +754,21 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
                   <MenubarMenu>
                     <MenubarTrigger
                       className="h-8 px-3 py-1.5 text-sm text-foreground hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                      disabled={!hasActiveChunks || stage !== 'edit' || isProcessing}
+                      disabled={
+                        !hasActiveChunks || stage !== "edit" || isProcessing
+                      }
                     >
                       <Video className="h-4 w-4 mr-1.5" />
                       <span className="hidden sm:inline">
-                        {isProcessing ? t('common.loading') : t('components.exportDialog.exportVideo')}
+                        {isProcessing
+                          ? t("common.loading")
+                          : t("components.exportDialog.exportVideo")}
                       </span>
                     </MenubarTrigger>
                     <MenubarContent align="start" className="min-w-[180px]">
                       <MenubarItem onClick={handleOpenVideoExportDialog}>
                         <Video className="h-4 w-4 mr-2" />
-                        {t('components.exportDialog.exportVideo')}
+                        {t("components.exportDialog.exportVideo")}
                       </MenubarItem>
                       <MenubarSeparator />
                       <MenubarItem
@@ -676,7 +776,7 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
                         className="data-[disabled]:opacity-50"
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        {t('components.messageCenter.title')}
+                        {t("components.messageCenter.title")}
                       </MenubarItem>
                     </MenubarContent>
                   </MenubarMenu>
@@ -720,10 +820,10 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
 }
 
 const FlyCutCaption: React.FC<FlyCutCaptionProps> = (props) => {
-  const appLanguage = useAppStore(state => state.language);
-  const setAppLanguage = useAppStore(state => state.setLanguage);
+  const appLanguage = useAppStore((state) => state.language);
+  const setAppLanguage = useAppStore((state) => state.setLanguage);
   const configLanguage = props.config?.language;
-  const resolvedLanguage = configLanguage || appLanguage || 'en';
+  const resolvedLanguage = configLanguage || appLanguage || "en";
 
   useEffect(() => {
     if (configLanguage && configLanguage !== appLanguage) {
@@ -731,10 +831,13 @@ const FlyCutCaption: React.FC<FlyCutCaptionProps> = (props) => {
     }
   }, [configLanguage, appLanguage, setAppLanguage]);
 
-  const handleLanguageChange = useCallback((lang: string) => {
-    setAppLanguage(lang);
-    props.onLanguageChange?.(lang);
-  }, [setAppLanguage, props.onLanguageChange]);
+  const handleLanguageChange = useCallback(
+    (lang: string) => {
+      setAppLanguage(lang);
+      props.onLanguageChange?.(lang);
+    },
+    [setAppLanguage, props.onLanguageChange]
+  );
 
   return (
     <LocaleProvider
@@ -750,6 +853,6 @@ const FlyCutCaption: React.FC<FlyCutCaptionProps> = (props) => {
 };
 
 // Add display name for better debugging
-FlyCutCaption.displayName = 'FlyCutCaption'
+FlyCutCaption.displayName = "FlyCutCaption";
 
 export default FlyCutCaption;

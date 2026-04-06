@@ -2,10 +2,10 @@
 // Main entry point for npm package
 
 // Import styles
-import './index.css'
+import "./index.css";
 
 // Main component export
-export { default as FlyCutCaption } from './FlyCutCaption'
+export { default as FlyCutCaption } from "./FlyCutCaption";
 
 // Type exports for TypeScript users
 export type {
@@ -16,15 +16,15 @@ export type {
   ASRProgress,
   VideoSegment,
   VideoProcessingProgress,
-  SubtitleStyle
-} from './types'
+  SubtitleStyle,
+} from "./types";
 
 // Configuration export
-export { defaultConfig } from './types'
+export { defaultConfig } from "./types";
 
 // Utility exports
-export { formatTime } from './utils/timeUtils'
-export { isVideoFile, formatFileSize } from './utils/fileUtils'
+export { formatTime } from "./utils/timeUtils";
+export { isVideoFile, formatFileSize } from "./utils/fileUtils";
 
 // Locale exports
 export {
@@ -33,18 +33,19 @@ export {
   useTranslation,
   zhCN,
   enUS,
-  defaultLocale
-} from './contexts/LocaleProvider'
+  defaultLocale,
+} from "./contexts/LocaleProvider";
 
-export type { FlyCutCaptionLocale } from './locales'
+export type { FlyCutCaptionLocale } from "./locales";
 
 // Version info
-export const version = '1.0.0'
+export const version = "1.0.0";
 
 // Component metadata
 export const metadata = {
-  name: '@flycut/caption-react',
-  description: 'Complete video subtitle editing React component with AI-powered speech recognition',
-  author: 'FlyCut Team',
-  license: 'MIT'
-} as const
+  name: "@flycut/caption-react",
+  description:
+    "Complete video subtitle editing React component with AI-powered speech recognition",
+  author: "FlyCut Team",
+  license: "MIT",
+} as const;

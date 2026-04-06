@@ -7,12 +7,12 @@ interface CreateFileWriterOptions {
 }
 
 export async function createFileWriter(
-  options: CreateFileWriterOptions,
+  options: CreateFileWriterOptions
 ): Promise<FileSystemWritableFileStream> {
-  if (!('showSaveFilePicker' in window) || !window.showSaveFilePicker) {
-    throw new Error('File System Access API not supported');
+  if (!("showSaveFilePicker" in window) || !window.showSaveFilePicker) {
+    throw new Error("File System Access API not supported");
   }
-  
+
   const fileHandle = await window.showSaveFilePicker({
     suggestedName: options.filename,
     types: options.types,
@@ -21,22 +21,22 @@ export async function createFileWriter(
 }
 
 export async function saveFile(
-  blob: Blob, 
-  filename: string, 
+  blob: Blob,
+  filename: string,
   types?: Array<{
     description: string;
     accept: Record<string, string[]>;
   }>
 ): Promise<void> {
   try {
-    if ('showSaveFilePicker' in window && window.showSaveFilePicker) {
+    if ("showSaveFilePicker" in window && window.showSaveFilePicker) {
       const writable = await createFileWriter({ filename, types });
       await writable.write(blob);
       await writable.close();
     } else {
       // 降级到传统Download方式
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
@@ -45,10 +45,10 @@ export async function saveFile(
       setTimeout(() => URL.revokeObjectURL(url), 100);
     }
   } catch (error) {
-    console.error('Failed to save file:', error);
+    console.error("Failed to save file:", error);
     // 如果用户取消了文件选择或其他错误，降级到传统Download
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
