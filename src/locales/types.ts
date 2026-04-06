@@ -1,4 +1,3 @@
-// 语言包类型定义
 export interface LocaleText {
   [key: string]: string | LocaleText;
 }
@@ -59,6 +58,9 @@ export interface FlyCutCaptionLocale {
       fileSize: string;
       fileType: string;
       duration: string;
+      or: string;
+      useDemoVideo: string;
+      fileUploaded: string;
     };
     videoPlayer: {
       play: string;
@@ -80,6 +82,15 @@ export interface FlyCutCaptionLocale {
       nextFrame: string;
       skipBackward: string;
       skipForward: string;
+      uploadVideoFirst: string;
+      skipBack10: string;
+      skipForward10: string;
+      previewMode: string;
+      exitPreviewMode: string;
+      enterPreviewMode: string;
+      previewModeDescription: string;
+      timeSaved: string;
+      retained: string;
     };
     subtitleEditor: {
       title: string;
@@ -126,6 +137,72 @@ export interface FlyCutCaptionLocale {
       position: string;
       alignment: string;
     };
+    subtitleList: {
+      noSubtitleData: string;
+      uploadAndGenerate: string;
+      undoLastAction: string;
+      undo: string;
+      redoLastAction: string;
+      redo: string;
+      selectAll: string;
+      clearSelection: string;
+      deleteSelected: string;
+      restoreDeleted: string;
+      estimatedRetainDuration: string;
+      deletedDuration: string;
+    };
+    subtitleItem: {
+      inputPlaceholder: string;
+      save: string;
+      saveShortcut: string;
+      cancel: string;
+      cancelShortcut: string;
+      duration: string;
+      deleted: string;
+      editSubtitle: string;
+      seekToHere: string;
+    };
+    subtitleSettings: {
+      title: string;
+      hideSubtitle: string;
+      showSubtitle: string;
+      resetToDefault: string;
+      presetStyles: string;
+      presetClassicWhite: string;
+      presetYellow: string;
+      presetBlackBgWhite: string;
+      presetTransparent: string;
+      fontSettings: string;
+      fontSize: string;
+      fontFamily: string;
+      fontStyle: string;
+      bold: string;
+      italic: string;
+      colorSettings: string;
+      textColor: string;
+      backgroundColor: string;
+      borderColor: string;
+      textAlignment: string;
+      alignLeft: string;
+      alignCenter: string;
+      alignRight: string;
+      positionSettings: string;
+      bottomDistance: string;
+      backgroundOpacity: string;
+      opacity: string;
+      shadowSettings: string;
+      blur: string;
+      xOffset: string;
+      yOffset: string;
+      fontMicrosoftYahei: string;
+      fontPingFang: string;
+      fontSourceHanSans: string;
+      fontMonospace: string;
+    };
+    subtitleOverlay: {
+      dragToAdjust: string;
+      clickDragToAdjust: string;
+    };
     asrPanel: {
       title: string;
       startASR: string;
@@ -167,6 +244,69 @@ export interface FlyCutCaptionLocale {
       resetSettings: string;
       saveSettings: string;
       loadSettings: string;
+      asrCompleteMessage: string;
+      asrCompleteDetail: string;
+      asrErrorMessage: string;
+      unknownError: string;
+      loadingModel: string;
+      loadingModelDefault: string;
+      processingAudio: string;
+      processingAudioDetail: string;
+      modelLoadSuccess: string;
+      modelLoadSuccessDetail: string;
+      modelLoadReady: string;
+      modelLoadFailed: string;
+      pleaseUploadFirst: string;
+      cannotStartTranscription: string;
+      startASRMessage: string;
+      preparingAudio: string;
+      preparingModel: string;
+      preparingModelDetail: string;
+      startTranscription: string;
+      recognizingLanguage: string;
+      transcriptionFailed: string;
+      transcriptionProcessFailed: string;
+      retryTranscription: string;
+      retryTranscriptionMessage: string;
+      retryTranscriptionDetail: string;
+      deviceSwitchSuccess: string;
+      deviceSwitchedTo: string;
+      webgpuName: string;
+      wasmName: string;
+      languageSwitchSuccess: string;
+      languageSwitchedTo: string;
+      missingVideoFile: string;
+      selectVideoFirst: string;
+      preparingAudioData: string;
+      extractingAudioFromVideo: string;
+      audioProcessingFailed: string;
+      audioExtractionFailed: string;
+      cannotStartProcessing: string;
+      audioDataPreparationFailed: string;
+      loadingASRModel: string;
+      statusFailed: string;
+      statusCompleted: string;
+      statusProcessing: string;
+      statusReady: string;
+      statusPending: string;
+      settings: string;
+      recognitionLanguage: string;
+      searchLanguagePlaceholder: string;
+      computeDevice: string;
+      webgpuRecommended: string;
+      wasmCompatible: string;
+      webgpuDescription: string;
+      wasmDescription: string;
+      modelDownloadNote: string;
+      loadingProgress: string;
+      startGenerateSubtitles: string;
+      fileLabel: string;
+      typeLabel: string;
+      durationLabel: string;
+    };
+    asrLanguageSelector: {
+      searchPlaceholder: string;
+      noMatchFound: string;
     };
     exportDialog: {
       title: string;
@@ -196,6 +336,33 @@ export interface FlyCutCaptionLocale {
       exportCancelled: string;
       estimatedSize: string;
       estimatedTime: string;
+      exportSubtitlesTitle: string;
+      exportVideoTitle: string;
+      subtitleFormatDescription: string;
+      videoConfigDescription: string;
+      srtFormat: string;
+      srtDescription: string;
+      jsonFormat: string;
+      jsonDescription: string;
+      onlyExportKept: string;
+      deletedNotIncluded: string;
+      outputFormat: string;
+      mp4Compatible: string;
+      webmSmaller: string;
+      outputQuality: string;
+      qualityHigh: string;
+      qualityMedium: string;
+      qualityLow: string;
+      subtitleProcessing: string;
+      noSubtitle: string;
+      noSubtitleDescription: string;
+      softBurn: string;
+      softBurnDescription: string;
+      hardBurn: string;
+      hardBurnDescription: string;
+      exportNotes: string;
+      exportWarning: string;
+      startExport: string;
     };
     messageCenter: {
       title: string;
@@ -213,12 +380,38 @@ export interface FlyCutCaptionLocale {
       dismiss: string;
       retry: string;
       report: string;
+      searchPlaceholder: string;
+      unread: string;
+      clearAllConfirm: string;
+      noMatchingMessages: string;
+      totalMessages: string;
+      unreadMessages: string;
+      clearAllMessages: string;
+      markAllAsRead: string;
+      filterAll: string;
+      filterSuccess: string;
+      filterError: string;
+      filterWarning: string;
+      filterInfo: string;
+    };
+    messageCard: {
+      justNow: string;
+      minutesAgo: string;
+      hoursAgo: string;
+      pinned: string;
+      stageAnalyzing: string;
+      stageCutting: string;
+      stageEncoding: string;
+      stageComplete: string;
+      stageError: string;
     };
     themeToggle: {
       light: string;
       dark: string;
       auto: string;
       toggleTheme: string;
+      system: string;
+      currentTheme: string;
     };
     languageSelector: {
       language: string;
@@ -234,6 +427,20 @@ export interface FlyCutCaptionLocale {
       russian: string;
       arabic: string;
       hindi: string;
+    };
+  };
+  hooks: {
+    hotkeys: {
+      undone: string;
+      undoneDetail: string;
+      cannotUndo: string;
+      cannotUndoDetail: string;
+      redone: string;
+      redoneDetail: string;
+      cannotRedo: string;
+      cannotRedoDetail: string;
+      undoLabel: string;
+      redoLabel: string;
     };
   };
   messages: {

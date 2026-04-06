@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { FlyCutCaption } from './index'
 import { zhCN, enUS, type FlyCutCaptionLocale } from './contexts/LocaleProvider'
 
-// 创建自定义语言包示例 - 日语
+// 创建自定义语言包示例 - 日语 (extends enUS as base, overrides with Japanese)
 const customJaJP: FlyCutCaptionLocale = {
+  ...enUS,
   common: {
+    ...enUS.common,
     loading: '読み込み中...',
     error: 'エラー',
     success: '成功',
@@ -42,7 +44,9 @@ const customJaJP: FlyCutCaptionLocale = {
     exitFullscreen: 'フルスクリーン解除',
   },
   components: {
+    ...enUS.components,
     fileUpload: {
+      ...enUS.components.fileUpload,
       dragDropText: 'ビデオファイルをここにドラッグするか、クリックして選択',
       clickToSelect: 'クリックしてファイルを選択',
       supportedFormats: 'サポート形式：',
@@ -61,6 +65,7 @@ const customJaJP: FlyCutCaptionLocale = {
       duration: '再生時間',
     },
     videoPlayer: {
+      ...enUS.components.videoPlayer,
       play: '再生',
       pause: '一時停止',
       stop: '停止',
@@ -82,6 +87,7 @@ const customJaJP: FlyCutCaptionLocale = {
       skipForward: '早送り',
     },
     subtitleEditor: {
+      ...enUS.components.subtitleEditor,
       title: '字幕エディター',
       addSubtitle: '字幕を追加',
       editSubtitle: '字幕を編集',
@@ -127,6 +133,7 @@ const customJaJP: FlyCutCaptionLocale = {
       alignment: '配置',
     },
     asrPanel: {
+      ...enUS.components.asrPanel,
       title: '音声認識',
       startASR: '認識開始',
       stopASR: '認識停止',
@@ -169,6 +176,7 @@ const customJaJP: FlyCutCaptionLocale = {
       loadSettings: '設定を読み込み',
     },
     exportDialog: {
+      ...enUS.components.exportDialog,
       title: 'エクスポート設定',
       format: 'フォーマット',
       quality: '品質',
@@ -198,6 +206,7 @@ const customJaJP: FlyCutCaptionLocale = {
       estimatedTime: '推定時間',
     },
     messageCenter: {
+      ...enUS.components.messageCenter,
       title: 'メッセージセンター',
       noMessages: 'メッセージなし',
       clearAll: 'すべてクリア',
@@ -215,12 +224,14 @@ const customJaJP: FlyCutCaptionLocale = {
       report: 'レポート',
     },
     themeToggle: {
+      ...enUS.components.themeToggle,
       light: 'ライト',
       dark: 'ダーク',
       auto: '自動',
       toggleTheme: 'テーマ切り替え',
     },
     languageSelector: {
+      ...enUS.components.languageSelector,
       language: '言語',
       selectLanguage: '言語を選択',
       chinese: '中文',
@@ -236,8 +247,11 @@ const customJaJP: FlyCutCaptionLocale = {
       hindi: 'हिन्दी',
     },
   },
+  hooks: enUS.hooks,
   messages: {
+    ...enUS.messages,
     fileUpload: {
+      ...enUS.messages.fileUpload,
       selectFile: 'ファイルを選択してください',
       uploadInProgress: 'ファイルアップロード中...',
       uploadSuccess: 'ファイルアップロード成功',
@@ -255,6 +269,7 @@ const customJaJP: FlyCutCaptionLocale = {
       processingCancelled: 'ファイル処理キャンセル',
     },
     asr: {
+      ...enUS.messages.asr,
       modelDownloading: '音声認識モデルダウンロード中...',
       modelDownloaded: '音声認識モデルダウンロード完了',
       modelDownloadFailed: '音声認識モデルダウンロード失敗',
@@ -274,6 +289,7 @@ const customJaJP: FlyCutCaptionLocale = {
       networkTimeout: 'ネットワークタイムアウト',
     },
     export: {
+      ...enUS.messages.export,
       exportStarted: 'エクスポート開始',
       exportProgress: 'エクスポート進行状況',
       exportCompleted: 'エクスポート完了',
@@ -286,6 +302,7 @@ const customJaJP: FlyCutCaptionLocale = {
       permissionDenied: 'アクセス拒否',
     },
     subtitle: {
+      ...enUS.messages.subtitle,
       subtitleAdded: '字幕を追加しました',
       subtitleEdited: '字幕を編集しました',
       subtitleDeleted: '字幕を削除しました',
@@ -302,6 +319,7 @@ const customJaJP: FlyCutCaptionLocale = {
       redoLimit: 'やり直し制限に達しました',
     },
     video: {
+      ...enUS.messages.video,
       videoLoaded: 'ビデオ読み込み完了',
       videoLoadFailed: 'ビデオ読み込み失敗',
       seekCompleted: 'シーク完了',
@@ -315,6 +333,7 @@ const customJaJP: FlyCutCaptionLocale = {
       videoTrackMissing: 'ビデオトラックがありません',
     },
     general: {
+      ...enUS.messages.general,
       operationSuccess: '操作成功',
       operationFailed: '操作失敗',
       operationCancelled: '操作キャンセル',

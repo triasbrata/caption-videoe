@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { 
+import { useTranslation } from '@/contexts/LocaleProvider';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -40,6 +41,7 @@ export function ExportDialog({
   onExportSubtitles,
   onExportVideo
 }: ExportDialogProps) {
+  const { t } = useTranslation();
   const [videoOptions, setVideoOptions] = useState<VideoExportOptions>({
     format: 'mp4',
     quality: 'medium',
@@ -64,19 +66,19 @@ export function ExportDialog({
             {exportType === 'subtitles' ? (
               <>
                 <FileText className="h-5 w-5 text-primary" />
-                <span>导出字幕</span>
+                <span>{t('components.exportDialog.exportSubtitlesTitle')}</span>
               </>
             ) : (
               <>
                 <Video className="h-5 w-5 text-primary" />
-                <span>导出视频</span>
+                <span>{t('components.exportDialog.exportVideoTitle')}</span>
               </>
             )}
           </DialogTitle>
           <DialogDescription>
-            {exportType === 'subtitles' 
-              ? '选择字幕格式并导出字幕文件' 
-              : '配置视频导出选项'}
+            {exportType === 'subtitles'
+              ? t('components.exportDialog.subtitleFormatDescription')
+              : t('components.exportDialog.videoConfigDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,8 +96,8 @@ export function ExportDialog({
                       <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">SRT 格式</div>
-                      <div className="text-sm text-muted-foreground">标准字幕文件</div>
+                      <div className="font-semibold">{t('components.exportDialog.srtFormat')}</div>
+                      <div className="text-sm text-muted-foreground">{t('components.exportDialog.srtDescription')}</div>
                     </div>
                   </div>
                   <Download className="w-4 h-4 text-muted-foreground" />
@@ -110,8 +112,8 @@ export function ExportDialog({
                       <Settings className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">JSON 格式</div>
-                      <div className="text-sm text-muted-foreground">带时间戳数据</div>
+                      <div className="font-semibold">{t('components.exportDialog.jsonFormat')}</div>
+                      <div className="text-sm text-muted-foreground">{t('components.exportDialog.jsonDescription')}</div>
                     </div>
                   </div>
                   <Download className="w-4 h-4 text-muted-foreground" />
@@ -121,9 +123,9 @@ export function ExportDialog({
               <div className="flex items-start space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
                 <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="font-medium text-blue-900 dark:text-blue-100">仅导出保留的字幕</div>
+                  <div className="font-medium text-blue-900 dark:text-blue-100">{t('components.exportDialog.onlyExportKept')}</div>
                   <div className="text-blue-700 dark:text-blue-300 mt-1">
-                    已删除的字幕片段不会包含在导出文件中
+                    {t('components.exportDialog.deletedNotIncluded')}
                   </div>
                 </div>
               </div>
@@ -133,7 +135,7 @@ export function ExportDialog({
             <div className="space-y-4">
               {/* 格式选择 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">输出格式</label>
+                <label className="text-sm font-medium">{t('components.exportDialog.outputFormat')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setVideoOptions(prev => ({ ...prev, format: 'mp4' }))}
@@ -145,7 +147,7 @@ export function ExportDialog({
                     )}
                   >
                     <div className="font-semibold">MP4</div>
-                    <div className="text-xs text-muted-foreground">广泛兼容</div>
+                    <div className="text-xs text-muted-foreground">{t('components.exportDialog.mp4Compatible')}</div>
                   </button>
                   <button
                     onClick={() => setVideoOptions(prev => ({ ...prev, format: 'webm' }))}
@@ -157,14 +159,14 @@ export function ExportDialog({
                     )}
                   >
                     <div className="font-semibold">WebM</div>
-                    <div className="text-xs text-muted-foreground">体积更小</div>
+                    <div className="text-xs text-muted-foreground">{t('components.exportDialog.webmSmaller')}</div>
                   </button>
                 </div>
               </div>
 
               {/* 质量选择 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">输出质量</label>
+                <label className="text-sm font-medium">{t('components.exportDialog.outputQuality')}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['high', 'medium', 'low'] as const).map((quality) => (
                     <button
@@ -177,7 +179,7 @@ export function ExportDialog({
                           : 'hover:bg-muted/50'
                       )}
                     >
-                      {quality === 'high' ? '高' : quality === 'medium' ? '中' : '低'}
+                      {quality === 'high' ? t('components.exportDialog.qualityHigh') : quality === 'medium' ? t('components.exportDialog.qualityMedium') : t('components.exportDialog.qualityLow')}
                     </button>
                   ))}
                 </div>
@@ -185,7 +187,7 @@ export function ExportDialog({
 
               {/* 字幕处理选项 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">字幕处理</label>
+                <label className="text-sm font-medium">{t('components.exportDialog.subtitleProcessing')}</label>
                 <div className="space-y-2">
                   <button
                     onClick={() => setVideoOptions(prev => ({ ...prev, subtitleProcessing: 'none' }))}
@@ -196,8 +198,8 @@ export function ExportDialog({
                         : 'hover:bg-muted/50'
                     )}
                   >
-                    <div className="font-semibold">无字幕</div>
-                    <div className="text-xs text-muted-foreground">不处理字幕，仅导出视频</div>
+                    <div className="font-semibold">{t('components.exportDialog.noSubtitle')}</div>
+                    <div className="text-xs text-muted-foreground">{t('components.exportDialog.noSubtitleDescription')}</div>
                   </button>
                   
                   <button
@@ -209,8 +211,8 @@ export function ExportDialog({
                         : 'hover:bg-muted/50'
                     )}
                   >
-                    <div className="font-semibold">软烧录</div>
-                    <div className="text-xs text-muted-foreground">字幕作为单独轨道嵌入，可开关</div>
+                    <div className="font-semibold">{t('components.exportDialog.softBurn')}</div>
+                    <div className="text-xs text-muted-foreground">{t('components.exportDialog.softBurnDescription')}</div>
                   </button>
                   
                   <button
@@ -222,8 +224,8 @@ export function ExportDialog({
                         : 'hover:bg-muted/50'
                     )}
                   >
-                    <div className="font-semibold">硬烧录</div>
-                    <div className="text-xs text-muted-foreground">字幕直接烧录到视频画面上</div>
+                    <div className="font-semibold">{t('components.exportDialog.hardBurn')}</div>
+                    <div className="text-xs text-muted-foreground">{t('components.exportDialog.hardBurnDescription')}</div>
                   </button>
                 </div>
               </div>
@@ -232,9 +234,9 @@ export function ExportDialog({
               <div className="flex items-start space-x-2 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-sm">
                 <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="font-medium text-orange-900 dark:text-orange-100">注意事项</div>
+                  <div className="font-medium text-orange-900 dark:text-orange-100">{t('components.exportDialog.exportNotes')}</div>
                   <div className="text-orange-700 dark:text-orange-300 mt-1">
-                    视频导出可能需要较长时间，导出过程中请勿关闭浏览器。
+                    {t('components.exportDialog.exportWarning')}
                   </div>
                 </div>
               </div>
@@ -248,13 +250,13 @@ export function ExportDialog({
               onClick={() => onOpenChange(false)}
               className="px-4 py-2 text-sm border rounded-md hover:bg-muted/50 transition-colors"
             >
-              取消
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleVideoExport}
               className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
-              开始导出
+              {t('components.exportDialog.startExport')}
             </button>
           </DialogFooter>
         )}

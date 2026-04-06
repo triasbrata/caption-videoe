@@ -4,6 +4,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { WHISPER_LANGUAGES, getLanguageName } from '@/constants/languages';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import { Globe, Search, Check, ChevronDown } from 'lucide-react';
 
 interface ASRLanguageSelectorProps {
@@ -19,8 +20,10 @@ export function ASRLanguageSelector({
   onLanguageChange,
   disabled = false,
   className,
-  placeholder = '搜索语音识别语言...'
+  placeholder,
 }: ASRLanguageSelectorProps) {
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder || t('components.asrLanguageSelector.searchPlaceholder');
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -149,7 +152,7 @@ export function ASRLanguageSelector({
                 type="text"
                 value={searchTerm}
                 onChange={handleSearchChange}
-                placeholder={placeholder}
+                placeholder={effectivePlaceholder}
                 className={cn(
                   'w-full pl-10 pr-3 py-2 text-sm',
                   'bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600',
@@ -192,7 +195,7 @@ export function ASRLanguageSelector({
             ) : (
               <div className="px-3 py-4 text-center text-muted-foreground">
                 <Search className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
-                <p className="text-sm">未找到匹配的语言</p>
+                <p className="text-sm">{t('components.asrLanguageSelector.noMatchFound')}</p>
               </div>
             )}
           </div>

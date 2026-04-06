@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import {
   Select,
   SelectContent,
@@ -15,17 +16,18 @@ interface ThemeToggleProps {
   className?: string;
 }
 
-const themeOptions = [
-  { value: 'light', label: '浅色', icon: Sun },
-  { value: 'dark', label: '深色', icon: Moon },
-  { value: 'system', label: '跟随系统', icon: Monitor },
-] as const;
-
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({ 
-  variant = 'button', 
-  className 
+export const ThemeToggle: React.FC<ThemeToggleProps> = ({
+  variant = 'button',
+  className
 }) => {
   const { theme, setTheme, toggleTheme } = useThemeStore();
+  const { t } = useTranslation();
+
+  const themeOptions = useMemo(() => [
+    { value: 'light', label: t('components.themeToggle.light'), icon: Sun },
+    { value: 'dark', label: t('components.themeToggle.dark'), icon: Moon },
+    { value: 'system', label: t('components.themeToggle.system'), icon: Monitor },
+  ] as const, [t]);
 
   if (variant === 'select') {
     return (
@@ -71,10 +73,10 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       size="icon"
       onClick={toggleTheme}
       className={className}
-      title={`当前主题: ${currentOption?.label || '未知'}`}
+      title={t('components.themeToggle.currentTheme', { theme: currentOption?.label || '' })}
     >
       <Icon className="h-4 w-4" />
-      <span className="sr-only">切换主题</span>
+      <span className="sr-only">{t('components.themeToggle.toggleTheme')}</span>
     </Button>
   );
 };

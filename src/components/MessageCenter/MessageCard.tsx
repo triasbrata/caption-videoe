@@ -1,6 +1,7 @@
 // 消息卡片组件
 import { cn } from '@/lib/utils';
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info, Clock, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import type { Message } from '@/types/message';
 
 interface MessageCardProps {
@@ -45,18 +46,18 @@ const colorMap = {
   },
 };
 
-function formatTime(timestamp: number) {
+function formatRelativeTime(timestamp: number, t: (path: string, params?: Record<string, string | number>) => string) {
   const now = Date.now();
   const diff = now - timestamp;
-  
-  if (diff < 60000) { // 1分钟内
-    return '刚刚';
-  } else if (diff < 3600000) { // 1小时内
-    return `${Math.floor(diff / 60000)}分钟前`;
-  } else if (diff < 86400000) { // 1天内
-    return `${Math.floor(diff / 3600000)}小时前`;
+
+  if (diff < 60000) {
+    return t('components.messageCard.justNow');
+  } else if (diff < 3600000) {
+    return t('components.messageCard.minutesAgo', { minutes: Math.floor(diff / 60000) });
+  } else if (diff < 86400000) {
+    return t('components.messageCard.hoursAgo', { hours: Math.floor(diff / 3600000) });
   } else {
-    return new Date(timestamp).toLocaleDateString('zh-CN', {
+    return new Date(timestamp).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -66,6 +67,7 @@ function formatTime(timestamp: number) {
 }
 
 export function MessageCard({ message, onMarkAsRead, onRemove }: MessageCardProps) {
+  const { t } = useTranslation();
   const Icon = iconMap[message.type];
   const colors = colorMap[message.type];
 
@@ -138,11 +140,11 @@ export function MessageCard({ message, onMarkAsRead, onRemove }: MessageCardProp
             <div className="mt-3 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground capitalize">
-                  {message.progress.stage === 'analyzing' && '分析中'}
-                  {message.progress.stage === 'cutting' && '裁剪中'}
-                  {message.progress.stage === 'encoding' && '编码中'}
-                  {message.progress.stage === 'complete' && '完成'}
-                  {message.progress.stage === 'error' && '错误'}
+                  {message.progress.stage === 'analyzing' && t('components.messageCard.stageAnalyzing')}
+                  {message.progress.stage === 'cutting' && t('components.messageCard.stageCutting')}
+                  {message.progress.stage === 'encoding' && t('components.messageCard.stageEncoding')}
+                  {message.progress.stage === 'complete' && t('components.messageCard.stageComplete')}
+                  {message.progress.stage === 'error' && t('components.messageCard.stageError')}
                 </span>
                 <span className="text-muted-foreground">{message.progress.progress}%</span>
               </div>
@@ -183,11 +185,11 @@ export function MessageCard({ message, onMarkAsRead, onRemove }: MessageCardProp
           <div className="flex items-center mt-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
             <time dateTime={new Date(message.timestamp).toISOString()}>
-              {formatTime(message.timestamp)}
+              {formatRelativeTime(message.timestamp, t)}
             </time>
             {message.persistent && (
               <span className="ml-2 px-1.5 py-0.5 bg-muted rounded text-xs">
-                置顶
+                {t('components.messageCard.pinned')}
               </span>
             )}
           </div>

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useRef } from 'react';
 import { useAppStore } from '@/stores/appStore';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import { 
   isVideoFile, 
   formatFileSize, 
@@ -53,7 +53,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
     try {
       // 验证文件类型
       if (!validateFileType(file, SUPPORTED_TYPES)) {
-        throw new Error(`${t('fileUpload.invalidFileType', { ns: 'components' })}: ${file.type}`);
+        throw new Error(`${t('components.fileUpload.invalidFileType')}: ${file.type}`);
       }
 
       // 读取文件为 ArrayBuffer (用于 ASR)
@@ -97,7 +97,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
 
     } catch (err) {
       console.error('文件处理失败:', err);
-      const errorMessage = err instanceof Error ? err.message : t('fileUploadFailed', { ns: 'messages' });
+      const errorMessage = err instanceof Error ? err.message : t('messages.fileUpload.uploadFailed');
       setError(errorMessage);
       setAppError(errorMessage);
     } finally {
@@ -250,16 +250,16 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
           {isProcessing ? (
             <>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4" />
-              <p className="text-sm text-muted-foreground">{t('processingFile', { ns: 'messages' })}</p>
+              <p className="text-sm text-muted-foreground">{t('messages.fileUpload.processingFile')}</p>
             </>
           ) : (
             <>
               <Upload className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-lg font-medium text-center mb-2">
-                {t('fileUpload.dragDropText', { ns: 'components' })}
+                {t('components.fileUpload.dragDropText')}
               </p>
               <p className="text-sm text-muted-foreground text-center mb-6">
-                {t('fileUpload.supportedFormats', { ns: 'components' })}
+                {t('components.fileUpload.supportedFormats')}
                 <br />
                 MP4, WebM, AVI, MOV, MP3, WAV, OGG
               </p>
@@ -267,7 +267,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
               {/* 示例视频按钮 */}
               <div className="flex items-center space-x-4">
                 <div className="flex-1 h-px bg-border"></div>
-                <span className="text-xs text-muted-foreground">或</span>
+                <span className="text-xs text-muted-foreground">{t('components.fileUpload.or')}</span>
                 <div className="flex-1 h-px bg-border"></div>
               </div>
 
@@ -280,7 +280,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
                 className="mt-4 inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-primary bg-primary/10 border border-primary/20 rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play className="h-4 w-4" />
-                <span>使用示例视频</span>
+                <span>{t('components.fileUpload.useDemoVideo')}</span>
               </button>
             </>
           )}
@@ -304,11 +304,11 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
                 </div>
                 
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>{t('size', { ns: 'common' })}: {formatFileSize(uploadedFile.size)}</p>
+                  <p>{t('components.fileUpload.fileSize')}: {formatFileSize(uploadedFile.size)}</p>
                   {uploadedFile.duration > 0 && (
-                    <p>{t('duration', { ns: 'common' })}: {Math.floor(uploadedFile.duration / 60)}:{Math.floor(uploadedFile.duration % 60).toString().padStart(2, '0')}</p>
+                    <p>{t('components.fileUpload.duration')}: {Math.floor(uploadedFile.duration / 60)}:{Math.floor(uploadedFile.duration % 60).toString().padStart(2, '0')}</p>
                   )}
-                  <p>{t('format', { ns: 'common' })}: {uploadedFile.type}</p>
+                  <p>{t('components.fileUpload.fileType')}: {uploadedFile.type}</p>
                 </div>
                 
                 {error && (
@@ -320,7 +320,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
             <button
               onClick={clearFile}
               className="flex-shrink-0 p-1 hover:bg-muted rounded-md transition-colors"
-              title={t('delete', { ns: 'common' })}
+              title={t('common.delete')}
             >
               <X className="h-4 w-4" />
             </button>
@@ -329,7 +329,7 @@ export function FileUpload({ className, onFileSelect }: FileUploadProps) {
           {!error && (
             <div className="mt-4 text-center">
               <p className="text-sm text-green-600">
-                ✅ {t('fileUploaded', { ns: 'messages' })}
+                {t('components.fileUpload.fileUploaded')}
               </p>
             </div>
           )}

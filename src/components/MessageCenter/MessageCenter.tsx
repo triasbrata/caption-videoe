@@ -1,23 +1,24 @@
 // 消息中心面板组件
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { 
-  useMessages, 
-  useUnreadCount, 
+import {
+  useMessages,
+  useUnreadCount,
   useMarkAsRead,
   useMarkAllAsRead,
   useRemoveMessage,
   useClearMessages
 } from '@/stores/messageStore';
 import { MessageCard } from './MessageCard';
-import { 
-  Bell, 
-  BellOff, 
-  CheckCheck, 
-  Trash2, 
+import { useTranslation } from '@/contexts/LocaleProvider';
+import {
+  Bell,
+  BellOff,
+  CheckCheck,
+  Trash2,
   Filter,
   Search,
-  X 
+  X
 } from 'lucide-react';
 import type { MessageType } from '@/types/message';
 
@@ -26,15 +27,8 @@ interface MessageCenterProps {
   onClose: () => void;
 }
 
-const filterOptions: { label: string; value: MessageType | 'all' }[] = [
-  { label: '全部', value: 'all' },
-  { label: '成功', value: 'success' },
-  { label: '错误', value: 'error' },
-  { label: '警告', value: 'warning' },
-  { label: '信息', value: 'info' },
-];
-
 export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
+  const { t } = useTranslation();
   const messages = useMessages();
   const unreadCount = useUnreadCount();
   const markAsRead = useMarkAsRead();
@@ -42,6 +36,14 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
   const removeMessage = useRemoveMessage();
   const clearMessages = useClearMessages();
   
+  const filterOptions = useMemo(() => [
+    { label: t('components.messageCenter.filterAll'), value: 'all' as const },
+    { label: t('components.messageCenter.filterSuccess'), value: 'success' as const },
+    { label: t('components.messageCenter.filterError'), value: 'error' as const },
+    { label: t('components.messageCenter.filterWarning'), value: 'warning' as const },
+    { label: t('components.messageCenter.filterInfo'), value: 'info' as const },
+  ], [t]);
+
   const [filter, setFilter] = useState<MessageType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
@@ -66,7 +68,7 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
   });
 
   const handleClearAll = () => {
-    if (confirm('确定要清空所有消息吗？')) {
+    if (confirm(t('components.messageCenter.clearAllConfirm'))) {
       clearMessages();
     }
   };
@@ -83,7 +85,7 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
         <div className="p-4 border-b flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bell className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">消息中心</h2>
+            <h2 className="text-lg font-semibold">{t('components.messageCenter.title')}</h2>
             {unreadCount > 0 && (
               <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
                 {unreadCount}
@@ -106,7 +108,7 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="搜索消息..."
+              placeholder={t('components.messageCenter.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -142,7 +144,7 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
               )}
             >
               <BellOff className="h-3 w-3" />
-              <span>未读</span>
+              <span>{t('components.messageCenter.unread')}</span>
             </button>
           </div>
         </div>
@@ -157,7 +159,7 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
                   className="flex items-center space-x-1 text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   <CheckCheck className="h-4 w-4" />
-                  <span>全部标记已读</span>
+                  <span>{t('components.messageCenter.markAllAsRead')}</span>
                 </button>
               )}
             </div>
@@ -167,7 +169,7 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
               className="flex items-center space-x-1 text-sm text-destructive hover:text-destructive/80 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
-              <span>清空全部</span>
+              <span>{t('components.messageCenter.clearAllMessages')}</span>
             </button>
           </div>
         )}
@@ -178,9 +180,9 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
             <div className="p-8 text-center text-muted-foreground">
               <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-sm">
-                {messages.length === 0 
-                  ? '暂无消息' 
-                  : '没有符合条件的消息'
+                {messages.length === 0
+                  ? t('components.messageCenter.noMessages')
+                  : t('components.messageCenter.noMatchingMessages')
                 }
               </p>
             </div>
@@ -201,8 +203,8 @@ export function MessageCenter({ isOpen, onClose }: MessageCenterProps) {
         
         {/* 底部统计 */}
         <div className="p-3 border-t text-xs text-muted-foreground text-center">
-          共 {messages.length} 条消息
-          {unreadCount > 0 && ` · ${unreadCount} 条未读`}
+          {t('components.messageCenter.totalMessages', { count: messages.length })}
+          {unreadCount > 0 && ` · ${t('components.messageCenter.unreadMessages', { count: unreadCount })}`}
         </div>
       </div>
     </div>

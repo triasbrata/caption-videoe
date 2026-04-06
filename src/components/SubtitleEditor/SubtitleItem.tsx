@@ -6,6 +6,7 @@ import { formatTime } from '@/utils/timeUtils';
 import type { SubtitleChunk } from '@/types/subtitle';
 import { Play, Clock, Edit2, Save, X } from 'lucide-react';
 import { useUpdateChunkText } from '@/stores/historyStore';
+import { useTranslation } from '@/contexts/LocaleProvider';
 
 interface SubtitleItemProps {
   chunk: SubtitleChunk;
@@ -28,6 +29,7 @@ export function SubtitleItem({
   onSeekTo,
   className,
 }: SubtitleItemProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(chunk.text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -138,24 +140,24 @@ export function SubtitleItem({
                 onKeyDown={handleKeyDown}
                 onClick={handleTextareaClick}
                 className="w-full text-sm leading-relaxed border rounded px-2 py-1 min-h-[3rem] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="输入字幕文本..."
+                placeholder={t('components.subtitleItem.inputPlaceholder')}
               />
               <div className="flex items-center space-x-1">
                 <button
                   onClick={handleSaveEdit}
                   className="flex items-center space-x-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors"
-                  title="保存 (Ctrl+Enter)"
+                  title={t('components.subtitleItem.saveShortcut')}
                 >
                   <Save className="h-3 w-3" />
-                  <span>保存</span>
+                  <span>{t('common.save')}</span>
                 </button>
                 <button
                   onClick={handleCancelEdit}
                   className="flex items-center space-x-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
-                  title="取消 (Esc)"
+                  title={t('components.subtitleItem.cancelShortcut')}
                 >
                   <X className="h-3 w-3" />
-                  <span>取消</span>
+                  <span>{t('common.cancel')}</span>
                 </button>
               </div>
             </div>
@@ -172,10 +174,10 @@ export function SubtitleItem({
               {formatTime(chunk.timestamp[0])} - {formatTime(chunk.timestamp[1])}
             </span>
             <span>
-              时长: {((chunk.timestamp[1] - chunk.timestamp[0])).toFixed(1)}s
+              {t('components.subtitleItem.duration')}: {((chunk.timestamp[1] - chunk.timestamp[0])).toFixed(1)}s
             </span>
             {!isActive && (
-              <span className="text-red-500 font-medium">已删除</span>
+              <span className="text-red-500 font-medium">{t('components.subtitleItem.deleted')}</span>
             )}
           </div>
         </div>
@@ -189,7 +191,7 @@ export function SubtitleItem({
           <button
             onClick={handleEditClick}
             className="p-1 hover:bg-blue-100 rounded transition-colors"
-            title="编辑字幕"
+            title={t('components.subtitleItem.editSubtitle')}
           >
             <Edit2 className="h-4 w-4 text-blue-600" />
           </button>
@@ -197,7 +199,7 @@ export function SubtitleItem({
         <button
           onClick={handlePlayClick}
           className="p-1 hover:bg-primary/10 rounded transition-colors"
-          title="跳转到此处"
+          title={t('components.subtitleItem.seekToHere')}
         >
           <Play className="h-4 w-4 text-primary" />
         </button>

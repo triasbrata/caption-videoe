@@ -7,6 +7,7 @@ import { useAppStore } from '@/stores/appStore';
 import { formatTime, isTimeInRange } from '@/utils/timeUtils';
 import { FileText, Trash2, RotateCcw, Check, Undo, Redo } from 'lucide-react';
 import { SubtitleItem } from './SubtitleItem';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import type { EnhancedVideoPlayerRef } from '@/components/VideoPlayer/EnhancedVideoPlayer';
 
 interface SubtitleListProps {
@@ -22,6 +23,7 @@ export function SubtitleList({
   className,
   videoPlayerRef
 }: SubtitleListProps) {
+  const { t } = useTranslation();
   const chunks = useChunks();
   const text = useHistoryText();
   const language = useHistoryLanguage();
@@ -131,9 +133,9 @@ export function SubtitleList({
       <div className={cn('flex flex-col items-center justify-center p-8', className)}>
         <FileText className="h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-muted-foreground text-center">
-          还没有字幕数据
+          {t('components.subtitleList.noSubtitleData')}
           <br />
-          请先上传视频并生成字幕
+          {t('components.subtitleList.uploadAndGenerate')}
         </p>
       </div>
     );
@@ -149,20 +151,20 @@ export function SubtitleList({
             onClick={undo}
             disabled={!canUndo}
             className="flex items-center space-x-1 px-2.5 py-1.5 text-xs border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            title="撤销上一步操作"
+            title={t('components.subtitleList.undoLastAction')}
           >
             <Undo className="h-3 w-3" />
-            <span className="hidden sm:inline">撤销</span>
+            <span className="hidden sm:inline">{t('components.subtitleList.undo')}</span>
           </button>
           
           <button
             onClick={redo}
             disabled={!canRedo}
             className="flex items-center space-x-1 px-2.5 py-1.5 text-xs border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            title="重做上一步操作"
+            title={t('components.subtitleList.redoLastAction')}
           >
             <Redo className="h-3 w-3" />
-            <span className="hidden sm:inline">重做</span>
+            <span className="hidden sm:inline">{t('components.subtitleList.redo')}</span>
           </button>
         </div>
 
@@ -173,7 +175,7 @@ export function SubtitleList({
             className="flex items-center space-x-1 px-2.5 py-1.5 text-xs border rounded hover:bg-muted transition-colors"
           >
             <Check className="h-3 w-3" />
-            <span className="hidden sm:inline">全选</span>
+            <span className="hidden sm:inline">{t('components.subtitleList.selectAll')}</span>
           </button>
           
           <button
@@ -181,7 +183,7 @@ export function SubtitleList({
             className="flex items-center space-x-1 px-2.5 py-1.5 text-xs border rounded hover:bg-muted transition-colors"
           >
             <RotateCcw className="h-3 w-3" />
-            <span className="hidden sm:inline">清除</span>
+            <span className="hidden sm:inline">{t('components.subtitleList.clearSelection')}</span>
           </button>
         </div>
         
@@ -191,7 +193,7 @@ export function SubtitleList({
           className="flex items-center space-x-1 px-2.5 py-1.5 text-xs border rounded hover:bg-red-50 hover:border-red-200 text-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <Trash2 className="h-3 w-3" />
-          <span>删除选中 ({selectedIds.size})</span>
+          <span>{t('components.subtitleList.deleteSelected', { count: selectedIds.size })}</span>
         </button>
 
         {statistics.deletedCount > 0 && (
@@ -200,7 +202,7 @@ export function SubtitleList({
             className="flex items-center space-x-1 px-2.5 py-1.5 text-xs border rounded hover:bg-green-50 hover:border-green-200 text-green-600 transition-colors"
           >
             <RotateCcw className="h-3 w-3" />
-            <span>恢复删除 ({statistics.deletedCount})</span>
+            <span>{t('components.subtitleList.restoreDeleted', { count: statistics.deletedCount })}</span>
           </button>
         )}
       </div>
@@ -233,8 +235,8 @@ export function SubtitleList({
 
       {/* 底部统计 */}
       <div className="text-xs text-muted-foreground text-center p-2 border-t">
-        预计保留时长: {formatTime(statistics.activeDuration)} / 
-        删除时长: {formatTime(statistics.deletedDuration)}
+        {t('components.subtitleList.estimatedRetainDuration')}: {formatTime(statistics.activeDuration)} /
+        {t('components.subtitleList.deletedDuration')}: {formatTime(statistics.deletedDuration)}
       </div>
     </div>
   );

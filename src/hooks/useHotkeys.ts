@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import hotkeys from 'hotkeys-js';
 import { useUndo, useRedo, useCanUndo, useCanRedo } from '@/stores/historyStore';
 import { useShowInfo } from '@/stores/messageStore';
+import { useTranslation } from '@/contexts/LocaleProvider';
 
 interface UseHotkeysOptions {
   enableHistoryHotkeys?: boolean;
@@ -15,12 +16,14 @@ export function useHotkeys(options: UseHotkeysOptions = {}) {
     enableGlobalHotkeys = false,
   } = options;
 
+  const { t } = useTranslation();
+
   // 历史记录操作
   const undo = useUndo();
   const redo = useRedo();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
-  
+
   // 消息通知
   const showInfo = useShowInfo();
 
@@ -36,9 +39,9 @@ export function useHotkeys(options: UseHotkeysOptions = {}) {
       event.preventDefault();
       if (canUndo) {
         undo();
-        showInfo('操作撤销', '已撤销上一步操作');
+        showInfo(t('hooks.hotkeys.undone'), t('hooks.hotkeys.undoneDetail'));
       } else {
-        showInfo('无法撤销', '没有可撤销的操作');
+        showInfo(t('hooks.hotkeys.cannotUndo'), t('hooks.hotkeys.cannotUndoDetail'));
       }
     });
 
@@ -47,9 +50,9 @@ export function useHotkeys(options: UseHotkeysOptions = {}) {
       event.preventDefault();
       if (canRedo) {
         redo();
-        showInfo('操作重做', '已重做上一步撤销的操作');
+        showInfo(t('hooks.hotkeys.redone'), t('hooks.hotkeys.redoneDetail'));
       } else {
-        showInfo('无法重做', '没有可重做的操作');
+        showInfo(t('hooks.hotkeys.cannotRedo'), t('hooks.hotkeys.cannotRedoDetail'));
       }
     });
 
@@ -58,19 +61,19 @@ export function useHotkeys(options: UseHotkeysOptions = {}) {
       hotkeys.unbind('ctrl+z,cmd+z', scope);
       hotkeys.unbind('ctrl+y,cmd+shift+z,ctrl+shift+z', scope);
     };
-  }, [enableHistoryHotkeys, enableGlobalHotkeys, undo, redo, canUndo, canRedo, showInfo]);
+  }, [enableHistoryHotkeys, enableGlobalHotkeys, undo, redo, canUndo, canRedo, showInfo, t]);
 
   // 返回快捷键信息供UI显示
   return {
     shortcuts: {
       undo: {
         keys: navigator.platform.includes('Mac') ? ['⌘', 'Z'] : ['Ctrl', 'Z'],
-        description: '撤销',
+        description: t('hooks.hotkeys.undoLabel'),
         enabled: canUndo,
       },
       redo: {
         keys: navigator.platform.includes('Mac') ? ['⌘', '⇧', 'Z'] : ['Ctrl', 'Y'],
-        description: '重做', 
+        description: t('hooks.hotkeys.redoLabel'),
         enabled: canRedo,
       },
     },

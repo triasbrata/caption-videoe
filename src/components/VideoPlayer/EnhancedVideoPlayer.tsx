@@ -5,6 +5,7 @@ import { useSize } from 'ahooks';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/utils/timeUtils';
 import { useChunks } from '@/stores/historyStore';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import { SubtitleOverlay } from './SubtitleOverlay';
 import type { SubtitleStyle } from '@/components/SubtitleSettings';
 import {
@@ -42,6 +43,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
   subtitleStyle,
   onSubtitleStyleChange
 }, ref) => {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -497,7 +499,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
           <div className="w-16 h-16 bg-muted-foreground/20 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Play className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">请先上传视频文件</p>
+          <p className="text-muted-foreground">{t('components.videoPlayer.uploadVideoFirst')}</p>
         </div>
       </div>
     );
@@ -534,7 +536,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
         {/* 预览模式指示器 */}
         {previewMode && keptSegments.length > 0 && (
           <div className="absolute top-4 right-4 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-            预览模式
+            {t('components.videoPlayer.previewMode')}
           </div>
         )}
       </div>
@@ -645,7 +647,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
             <button
               onClick={() => skip(-10)}
               className="p-2 hover:bg-muted rounded-md transition-colors"
-              title="后退 10 秒"
+              title={t('components.videoPlayer.skipBack10')}
             >
               <SkipBack className="w-4 h-4" />
             </button>
@@ -653,7 +655,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
             <button
               onClick={togglePlayPause}
               className="p-2 hover:bg-muted rounded-md transition-colors"
-              title={isPlaying ? '暂停' : '播放'}
+              title={isPlaying ? t('common.pause') : t('common.play')}
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </button>
@@ -661,7 +663,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
             <button
               onClick={() => skip(10)}
               className="p-2 hover:bg-muted rounded-md transition-colors"
-              title="前进 10 秒"
+              title={t('components.videoPlayer.skipForward10')}
             >
               <SkipForward className="w-4 h-4" />
             </button>
@@ -675,7 +677,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
                 'p-2 rounded-md transition-colors',
                 previewMode ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
               )}
-              title={previewMode ? '退出预览模式' : '进入预览模式'}
+              title={previewMode ? t('components.videoPlayer.exitPreviewMode') : t('components.videoPlayer.enterPreviewMode')}
             >
               {previewMode ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
             </button>
@@ -685,7 +687,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
               <button
                 onClick={toggleMute}
                 className="p-2 hover:bg-muted rounded-md transition-colors"
-                title={isMuted ? '取消静音' : '静音'}
+                title={isMuted ? t('common.unmute') : t('common.mute')}
               >
                 {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
@@ -705,7 +707,7 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
             <button
               onClick={toggleFullscreen}
               className="p-2 hover:bg-muted rounded-md transition-colors"
-              title="全屏"
+              title={t('common.fullscreen')}
             >
               <Maximize className="w-4 h-4" />
             </button>
@@ -716,10 +718,10 @@ export const EnhancedVideoPlayer = forwardRef<EnhancedVideoPlayerRef, EnhancedVi
         {previewMode && keptSegments.length > 0 && (
           <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2">
             <div className="flex justify-between">
-              <span>预览模式：自动跳过删除片段</span>
+              <span>{t('components.videoPlayer.previewModeDescription')}</span>
               <span>
-                节省时间: {formatTime(duration - newTimelineDuration)} 
-                ({((newTimelineDuration / duration) * 100).toFixed(1)}% 保留)
+                {t('components.videoPlayer.timeSaved', { time: formatTime(duration - newTimelineDuration) })}
+                ({t('components.videoPlayer.retained', { percentage: ((newTimelineDuration / duration) * 100).toFixed(1) })})
               </span>
             </div>
           </div>

@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Bell } from 'lucide-react';
 import { useUnreadCount } from '@/stores/messageStore';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import { MessageCenter } from './MessageCenter';
 
 export function MessageCenterButton() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const unreadCount = useUnreadCount();
 
@@ -18,7 +20,7 @@ export function MessageCenterButton() {
           'hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
           isOpen && 'bg-muted'
         )}
-        title="消息中心"
+        title={t('components.messageCenter.title')}
       >
         <Bell className="h-5 w-5 text-foreground" />
         

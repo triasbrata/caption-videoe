@@ -17,14 +17,13 @@ const builtinLocales: LocaleRegistry = {
   'en-US': enUS,
 };
 
-// 语言包上下文类型
 interface LocaleContextType {
   locale: FlyCutCaptionLocale;
   language: string;
   setLanguage: (lang: string) => void;
   registerLocale: (lang: string, localeData: FlyCutCaptionLocale) => void;
   getAvailableLanguages: () => string[];
-  t: (path: string) => string;
+  t: (path: string, params?: Record<string, string | number>) => string;
 }
 
 // 创建上下文
@@ -38,8 +37,7 @@ interface LocaleProviderProps {
   onLanguageChange?: (language: string) => void;
 }
 
-// 获取嵌套对象的值
-function getNestedValue(obj: any, path: string): string {
+function getNestedValue(obj: any, path: string, params?: Record<string, string | number>): string {
   const keys = path.split('.');
   let result = obj;
 
@@ -47,11 +45,19 @@ function getNestedValue(obj: any, path: string): string {
     if (result && typeof result === 'object' && key in result) {
       result = result[key];
     } else {
-      return path; // 如果找不到，返回原始路径作为备用
+      return path;
     }
   }
 
-  return typeof result === 'string' ? result : path;
+  let str = typeof result === 'string' ? result : path;
+
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      str = str.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value));
+    }
+  }
+
+  return str;
 }
 
 export function LocaleProvider({
@@ -109,9 +115,8 @@ export function LocaleProvider({
     return Array.from(allLanguages);
   }, [customLocales]);
 
-  // 翻译函数
-  const t = useCallback((path: string): string => {
-    return getNestedValue(currentLocale, path);
+  const t = useCallback((path: string, params?: Record<string, string | number>): string => {
+    return getNestedValue(currentLocale, path, params);
   }, [currentLocale]);
 
   const contextValue: LocaleContextType = {

@@ -2,6 +2,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useChunks } from '@/stores/historyStore';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import type { SubtitleStyle } from '@/components/SubtitleSettings';
 
 interface SubtitleOverlayProps {
@@ -21,6 +22,7 @@ export function SubtitleOverlay({
   videoDimensions,
   className
 }: SubtitleOverlayProps) {
+  const { t } = useTranslation();
   const chunks = useChunks();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -389,7 +391,7 @@ export function SubtitleOverlay({
           transition: isDragging ? 'none' : 'opacity 0.2s ease',
         }}
         onMouseDown={currentSubtitle ? handleDragStart : undefined}
-        title={currentSubtitle ? "拖拽调整字幕位置" : undefined}
+        title={currentSubtitle ? t('components.subtitleOverlay.dragToAdjust') : undefined}
       />
       
       {/* 拖拽提示线 */}
@@ -406,7 +408,7 @@ export function SubtitleOverlay({
           className="absolute left-1/2 transform -translate-x-1/2 w-20 h-8 opacity-0 hover:opacity-20 bg-primary rounded cursor-ns-resize pointer-events-auto transition-opacity"
           style={{ bottom: `${scaleSize(style.bottomOffset) - 16}px` }}
           onMouseDown={handleDragStart}
-          title="点击拖拽调整字幕位置"
+          title={t('components.subtitleOverlay.clickDragToAdjust')}
         />
       )}
     </div>

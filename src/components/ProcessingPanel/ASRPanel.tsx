@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/LocaleProvider';
 import { useAppStore } from '@/stores/appStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useShowSuccess, useShowError, useShowInfo, useShowWarning } from '@/stores/messageStore';
@@ -26,6 +27,7 @@ interface ASRPanelProps {
 }
 
 export function ASRPanel({ className }: ASRPanelProps) {
+  const { t } = useTranslation();
   const videoFile = useAppStore((state) => state.videoFile);
   const language = useAppStore(state => state.language);
   const deviceType = useAppStore(state => state.deviceType);
@@ -66,8 +68,8 @@ export function ASRPanel({ className }: ASRPanelProps) {
         const chunkCount = progress.result.chunks?.length || 0;
         const duration = progress.time ? (progress.time / 1000).toFixed(1) : '0';
         showSuccess(
-          '语音识别完成', 
-          `成功识别 ${chunkCount} 个句子片段，耗时 ${duration} 秒`
+          t('components.asrPanel.asrCompleteMessage'),
+          t('components.asrPanel.asrCompleteDetail', { count: chunkCount, duration })
         );
       }
 
@@ -75,22 +77,22 @@ export function ASRPanel({ className }: ASRPanelProps) {
       if (progress.status === 'error') {
         console.error('ASR处理进度错误:', progress.error);
         setError(`ASR处理失败: ${progress.error}`);
-        showError('语音识别失败', progress.error || '未知错误');
+        showError(t('components.asrPanel.asrErrorMessage'), progress.error || t('components.asrPanel.unknownError'));
       }
       
       // 处理加载状态
       if (progress.status === 'loading') {
-        showInfo('正在加载模型', progress.data || '首次使用需要下载模型文件...');
+        showInfo(t('components.asrPanel.loadingModel'), progress.data || t('components.asrPanel.loadingModelDefault'));
       }
       
       // 处理运行状态
       if (progress.status === 'running') {
-        showInfo('正在处理音频', '正在识别语音内容，请稍候...');
+        showInfo(t('components.asrPanel.processingAudio'), t('components.asrPanel.processingAudioDetail'));
       }
       
       // 处理模型准备完成
       if (progress.status === 'loaded') {
-        showSuccess('模型加载成功', '语音识别模型已准备就绪，可以开始转录');
+        showSuccess(t('components.asrPanel.modelLoadSuccess'), t('components.asrPanel.modelLoadSuccessDetail'));
       }
     };
 
@@ -116,12 +118,12 @@ export function ASRPanel({ className }: ASRPanelProps) {
     try {
       setLoading(true);
       await asrService.loadModel();
-      showSuccess('模型加载成功', '语音识别模型已准备就绪');
+      showSuccess(t('components.asrPanel.modelLoadSuccess'), t('components.asrPanel.modelLoadReady'));
     } catch (error) {
       console.error('ASR模型加载失败:', error);
-      const errorMessage = error instanceof Error ? error.message : '模型加载失败';
+      const errorMessage = error instanceof Error ? error.message : t('components.asrPanel.modelLoadFailed');
       setError(errorMessage);
-      showError('模型加载失败', errorMessage);
+      showError(t('components.asrPanel.modelLoadFailed'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -130,26 +132,26 @@ export function ASRPanel({ className }: ASRPanelProps) {
   // 开始转录
   const startTranscription = useCallback(async (audioBuffer: ArrayBuffer) => {
     if (!videoFile) {
-      const errorMsg = '请先上传视频文件';
+      const errorMsg = t('components.asrPanel.pleaseUploadFirst');
       setError(errorMsg);
-      showWarning('无法开始转录', errorMsg);
+      showWarning(t('components.asrPanel.cannotStartTranscription'), errorMsg);
       return;
     }
 
     try {
       setLoading(true);
-      showInfo('开始语音识别', '正在准备音频数据...');
+      showInfo(t('components.asrPanel.startASRMessage'), t('components.asrPanel.preparingAudio'));
       
       // 先确保模型已准备
       if (!asrService.isReady()) {
-        setASRProgress({ status: 'loading', data: '准备模型中...' });
-        showInfo('准备模型', '首次使用需要下载和加载模型...');
+        setASRProgress({ status: 'loading', data: t('components.asrPanel.preparingModel') });
+        showInfo(t('components.asrPanel.preparingModel'), t('components.asrPanel.preparingModelDetail'));
         await asrService.prepareModel();
       }
 
       // 然后进行转录
-      setASRProgress({ status: 'loading', data: '开始转录音频...' });
-      showInfo('开始转录', `正在识别${language === 'zh' ? '中文' : '英文'}语音内容...`);
+      setASRProgress({ status: 'loading', data: t('components.asrPanel.startTranscription') });
+      showInfo(t('components.asrPanel.startASRMessage'), t('components.asrPanel.recognizingLanguage', { language }));
       
       await asrService.transcribeAudio(
         audioBuffer,
@@ -159,9 +161,9 @@ export function ASRPanel({ className }: ASRPanelProps) {
       // 注意：不在这里设置 transcript，让 progress callback 统一处理
     } catch (error) {
       console.error('ASR转录失败:', error);
-      const errorMessage = error instanceof Error ? error.message : '转录失败';
+      const errorMessage = error instanceof Error ? error.message : t('components.asrPanel.transcriptionFailed');
       setError(errorMessage);
-      showError('转录过程失败', errorMessage);
+      showError(t('components.asrPanel.transcriptionProcessFailed'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -170,41 +172,40 @@ export function ASRPanel({ className }: ASRPanelProps) {
   // 重新开始转录
   const retryTranscription = useCallback(async (audioBuffer: ArrayBuffer) => {
     // 重置状态
-    setASRProgress({ status: 'loading', data: '准备重新转录...' });
-    showInfo('重新开始转录', '正在重新处理音频数据...');
+    setASRProgress({ status: 'loading', data: t('components.asrPanel.retryTranscription') });
+    showInfo(t('components.asrPanel.retryTranscriptionMessage'), t('components.asrPanel.retryTranscriptionDetail'));
     await startTranscription(audioBuffer);
   }, [startTranscription, setASRProgress, showInfo]);
 
   // 更改设备类型
   const changeDevice = useCallback((device: 'webgpu' | 'wasm') => {
     setDeviceType(device);
-    const deviceName = device === 'webgpu' ? 'WebGPU (GPU加速)' : 'WebAssembly (CPU)';
-    showInfo('设备切换成功', `已切换到 ${deviceName}`);
+    const deviceName = device === 'webgpu' ? t('components.asrPanel.webgpuName') : t('components.asrPanel.wasmName');
+    showInfo(t('components.asrPanel.deviceSwitchSuccess'), t('components.asrPanel.deviceSwitchedTo', { device: deviceName }));
   }, [setDeviceType, showInfo]);
 
   // 更改语言
   const changeLanguage = useCallback((newLanguage: string) => {
     setLanguage(newLanguage);
-    const languageName = newLanguage === 'zh' ? '中文' : newLanguage === 'en' ? '英文' : newLanguage;
-    showInfo('语言切换成功', `识别语言已设置为 ${languageName}`);
+    showInfo(t('components.asrPanel.languageSwitchSuccess'), t('components.asrPanel.languageSwitchedTo', { language: newLanguage }));
   }, [setLanguage, showInfo]);
 
   // 准备音频数据
   const prepareAudioData = useCallback(async () => {
     if (!videoFile) {
-      showWarning('缺少视频文件', '请先选择要处理的视频文件');
+      showWarning(t('components.asrPanel.missingVideoFile'), t('components.asrPanel.selectVideoFirst'));
       return null;
     }
 
     try {
-      showInfo('准备音频数据', '正在从视频文件中提取音频...');
+      showInfo(t('components.asrPanel.preparingAudioData'), t('components.asrPanel.extractingAudioFromVideo'));
       audioBufferRef.current = await readFileAsArrayBuffer(videoFile.file);
       return audioBufferRef.current;
     } catch (error) {
       console.error('音频数据准备失败:', error);
       console.error('音频数据准备错误详情:', { videoFile: videoFile?.name, error });
-      const errorMessage = '音频数据提取失败，请检查文件格式';
-      showError('音频处理失败', errorMessage);
+      const errorMessage = t('components.asrPanel.audioExtractionFailed');
+      showError(t('components.asrPanel.audioProcessingFailed'), errorMessage);
       return null;
     }
   }, [videoFile, showInfo, showWarning, showError]);
@@ -213,12 +214,12 @@ export function ASRPanel({ className }: ASRPanelProps) {
   const handleStartASR = useCallback(async () => {
     const audioBuffer = await prepareAudioData();
     if (!audioBuffer) {
-      showError('无法开始处理', '音频数据准备失败，请重试');
+      showError(t('components.asrPanel.cannotStartProcessing'), t('components.asrPanel.audioDataPreparationFailed'));
       return;
     }
 
     if (!isReady()) {
-      showInfo('准备模型', '正在加载语音识别模型...');
+      showInfo(t('components.asrPanel.preparingModel'), t('components.asrPanel.loadingASRModel'));
       await loadModel();
     }
 
@@ -247,18 +248,18 @@ export function ASRPanel({ className }: ASRPanelProps) {
   // 获取简化状态显示
   const getSimpleStatus = () => {
     if (error) {
-      return { icon: <AlertCircle className="h-4 w-4 text-red-500" />, text: '处理失败', color: 'text-red-600' };
+      return { icon: <AlertCircle className="h-4 w-4 text-red-500" />, text: t('components.asrPanel.statusFailed'), color: 'text-red-600' };
     }
     if (asrProgress?.status === 'complete') {
-      return { icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, text: '已完成', color: 'text-green-600' };
+      return { icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, text: t('components.asrPanel.statusCompleted'), color: 'text-green-600' };
     }
     if (isLoading || asrProgress?.status === 'loading' || asrProgress?.status === 'running') {
-      return { icon: <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />, text: '处理中', color: 'text-blue-600' };
+      return { icon: <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />, text: t('components.asrPanel.statusProcessing'), color: 'text-blue-600' };
     }
     if (isReady()) {
-      return { icon: <Mic className="h-4 w-4 text-green-500" />, text: '已就绪', color: 'text-green-600' };
+      return { icon: <Mic className="h-4 w-4 text-green-500" />, text: t('components.asrPanel.statusReady'), color: 'text-green-600' };
     }
-    return { icon: <Play className="h-4 w-4 text-muted-foreground" />, text: '待开始', color: 'text-muted-foreground' };
+    return { icon: <Play className="h-4 w-4 text-muted-foreground" />, text: t('components.asrPanel.statusPending'), color: 'text-muted-foreground' };
   };
 
   const statusDisplay = getSimpleStatus();
@@ -271,13 +272,13 @@ export function ASRPanel({ className }: ASRPanelProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center space-x-2">
           <Mic className="h-5 w-5" />
-          <span>语音识别 (ASR)</span>
+          <span>{t('components.asrPanel.title')}</span>
         </h3>
         
         <button
           onClick={() => setShowSettings(!showSettings)}
           className="p-2 hover:bg-muted rounded-md transition-colors"
-          title="设置"
+          title={t('components.asrPanel.settings')}
         >
           <Settings className="h-4 w-4" />
         </button>
@@ -291,13 +292,13 @@ export function ASRPanel({ className }: ASRPanelProps) {
             <div className="space-y-2">
               <label className="flex items-center space-x-2 text-sm font-medium">
                 <Globe className="h-4 w-4" />
-                <span>识别语言</span>
+                <span>{t('components.asrPanel.recognitionLanguage')}</span>
               </label>
               <ASRLanguageSelector
                 language={language}
                 onLanguageChange={handleLanguageChange}
                 disabled={isLoading}
-                placeholder="搜索支持的语音识别语言..."
+                placeholder={t('components.asrPanel.searchLanguagePlaceholder')}
               />
             </div>
 
@@ -305,7 +306,7 @@ export function ASRPanel({ className }: ASRPanelProps) {
             <div className="space-y-2">
               <label className="flex items-center space-x-2 text-sm font-medium">
                 <Cpu className="h-4 w-4" />
-                <span>计算设备</span>
+                <span>{t('components.asrPanel.computeDevice')}</span>
               </label>
               <select
                 value={deviceType}
@@ -313,16 +314,16 @@ export function ASRPanel({ className }: ASRPanelProps) {
                 className="w-full p-2 border rounded-md bg-background"
                 disabled={isLoading}
               >
-                <option value="webgpu">WebGPU (推荐)</option>
-                <option value="wasm">WebAssembly (兼容)</option>
+                <option value="webgpu">{t('components.asrPanel.webgpuRecommended')}</option>
+                <option value="wasm">{t('components.asrPanel.wasmCompatible')}</option>
               </select>
             </div>
           </div>
           
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>• <strong>WebGPU</strong>: 速度更快，需要现代浏览器支持</p>
-            <p>• <strong>WebAssembly</strong>: 兼容性更好，适用于所有浏览器</p>
-            <p>• 首次使用会下载约 {deviceType === 'webgpu' ? '196MB' : '77MB'} 的模型文件</p>
+            <p>• {t('components.asrPanel.webgpuDescription')}</p>
+            <p>• {t('components.asrPanel.wasmDescription')}</p>
+            <p>• {t('components.asrPanel.modelDownloadNote', { size: deviceType === 'webgpu' ? '196MB' : '77MB' })}</p>
           </div>
         </div>
       )}
@@ -341,7 +342,7 @@ export function ASRPanel({ className }: ASRPanelProps) {
       {asrProgress && asrProgress.progress !== undefined && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>加载进度</span>
+            <span>{t('components.asrPanel.loadingProgress')}</span>
             <span>{Math.round(asrProgress.progress || 0)}%</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
@@ -358,7 +359,7 @@ export function ASRPanel({ className }: ASRPanelProps) {
         <div className="border rounded-lg p-3 bg-muted/20">
           <div className="flex items-center space-x-2 mb-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">识别语言</span>
+            <span className="text-sm font-medium">{t('components.asrPanel.recognitionLanguage')}</span>
           </div>
           <ASRLanguageSelector
             language={language}
@@ -383,7 +384,7 @@ export function ASRPanel({ className }: ASRPanelProps) {
           )}
         >
           <Play className="h-4 w-4" />
-          <span>开始生成字幕</span>
+          <span>{t('components.asrPanel.startGenerateSubtitles')}</span>
         </button>
 
         {canRetry && (
@@ -392,7 +393,7 @@ export function ASRPanel({ className }: ASRPanelProps) {
             className="flex items-center space-x-2 py-2.5 px-4 border rounded-md hover:bg-muted transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
-            <span>重试</span>
+            <span>{t('common.retry')}</span>
           </button>
         )}
       </div>
@@ -400,10 +401,10 @@ export function ASRPanel({ className }: ASRPanelProps) {
       {/* 文件信息 */}
       {videoFile && (
         <div className="text-xs text-muted-foreground border-t pt-4">
-          <p>文件: {videoFile.name}</p>
-          <p>类型: {videoFile.type}</p>
+          <p>{t('components.asrPanel.fileLabel')}: {videoFile.name}</p>
+          <p>{t('components.asrPanel.typeLabel')}: {videoFile.type}</p>
           {videoFile.duration > 0 && (
-            <p>时长: {Math.floor(videoFile.duration / 60)}:{Math.floor(videoFile.duration % 60).toString().padStart(2, '0')}</p>
+            <p>{t('components.asrPanel.durationLabel')}: {Math.floor(videoFile.duration / 60)}:{Math.floor(videoFile.duration % 60).toString().padStart(2, '0')}</p>
           )}
         </div>
       )}
