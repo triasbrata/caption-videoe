@@ -361,6 +361,10 @@ const zhCN: FlyCutCaptionLocale = {
       exportNotes: '注���事项',
       exportWarning: '视频导出可能需要较长时间，导出过程中请勿关闭浏览器。',
       startExport: '开始导出',
+      chooseSaveLocation: '选择保存位置',
+      saveLocationChosen: '保存位置：{name}',
+      changeSaveLocation: '更改',
+      saveLocationRequired: '请在导出前选择保存位置',
     },
     messageCenter: {
       title: '消息中心',

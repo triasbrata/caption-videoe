@@ -10,6 +10,15 @@ import type {
 import type { ASRProgress } from '@/types/subtitle'
 import { hasWebGPU } from '@/utils/audioUtils'
 
+const LANGUAGE_STORAGE_KEY = 'flycut-language'
+
+const getInitialLanguage = (): string => {
+  if (typeof window === 'undefined') {
+    return 'en'
+  }
+  return window.localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en'
+}
+
 // 应用状态接口
 export interface AppState {
   // 应用程序阶段
@@ -91,7 +100,7 @@ const initialState: AppState = {
   isLoading: false,
   error: null,
   
-  language: 'en',
+  language: getInitialLanguage(),
   deviceType: 'wasm',
 }
 
@@ -181,10 +190,19 @@ export const useAppStore = create<AppState & AppActions>()(
       
       // 设置管理
       setLanguage: (language) =>
-        set((state) => ({
-          ...state,
-          language
-        })),
+        set((state) => {
+          if (typeof window !== 'undefined') {
+            try {
+              window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language)
+            } catch (error) {
+              console.warn('Language persistence failed:', error)
+            }
+          }
+          return {
+            ...state,
+            language
+          }
+        }),
       
       setDeviceType: (deviceType) =>
         set((state) => ({

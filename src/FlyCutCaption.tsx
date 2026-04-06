@@ -720,11 +720,27 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
 }
 
 const FlyCutCaption: React.FC<FlyCutCaptionProps> = (props) => {
+  const appLanguage = useAppStore(state => state.language);
+  const setAppLanguage = useAppStore(state => state.setLanguage);
+  const configLanguage = props.config?.language;
+  const resolvedLanguage = configLanguage || appLanguage || 'en';
+
+  useEffect(() => {
+    if (configLanguage && configLanguage !== appLanguage) {
+      setAppLanguage(configLanguage);
+    }
+  }, [configLanguage, appLanguage, setAppLanguage]);
+
+  const handleLanguageChange = useCallback((lang: string) => {
+    setAppLanguage(lang);
+    props.onLanguageChange?.(lang);
+  }, [setAppLanguage, props.onLanguageChange]);
+
   return (
     <LocaleProvider
-      language={props.config?.language || 'en'}
+      language={resolvedLanguage}
       locale={props.locale}
-      onLanguageChange={props.onLanguageChange}
+      onLanguageChange={handleLanguageChange}
     >
       <ThemeInitializer />
       <FlyCutCaptionContent {...props} />

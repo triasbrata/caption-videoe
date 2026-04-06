@@ -363,6 +363,10 @@ export interface FlyCutCaptionLocale {
       exportNotes: string;
       exportWarning: string;
       startExport: string;
+      chooseSaveLocation: string;
+      saveLocationChosen: string;
+      changeSaveLocation: string;
+      saveLocationRequired: string;
     };
     messageCenter: {
       title: string;
