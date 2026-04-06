@@ -10,6 +10,7 @@ import type { FlyCutCaptionLocale } from "@/locales";
 import { defaultLocale } from "@/locales";
 import zhCN from "@/locales/zh_CN";
 import enUS from "@/locales/en_US";
+import jaJP from "@/locales/ja_JP";
 
 // 语言包注册表
 interface LocaleRegistry {
@@ -22,6 +23,8 @@ const builtinLocales: LocaleRegistry = {
   "zh-CN": zhCN,
   en: enUS,
   "en-US": enUS,
+  ja: jaJP,
+  "ja-JP": jaJP,
 };
 
 interface LocaleContextType {
@@ -173,4 +176,4 @@ export function useTranslation() {
 
 // 导出类型和内置语言包，供用户使用
 export type { FlyCutCaptionLocale };
-export { zhCN, enUS, defaultLocale };
+export { zhCN, enUS, jaJP, defaultLocale };

@@ -1,6 +1,6 @@
 // 主应用 Zustand Store
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 import type {
   VideoFile,
   VideoPlayerState,
@@ -9,15 +9,6 @@ import type {
 } from "@/types/video";
 import type { ASRProgress } from "@/types/subtitle";
 import { hasWebGPU } from "@/utils/audioUtils";
-
-const LANGUAGE_STORAGE_KEY = "flycut-language";
-
-const getInitialLanguage = (): string => {
-  if (typeof window === "undefined") {
-    return "en";
-  }
-  return window.localStorage.getItem(LANGUAGE_STORAGE_KEY) || "en";
-};
 
 // 应用状态接口
 export interface AppState {
@@ -100,145 +91,152 @@ const initialState: AppState = {
   isLoading: false,
   error: null,
 
-  language: getInitialLanguage(),
+  language: "en",
   deviceType: "wasm",
 };
 
 // 创建Store
 export const useAppStore = create<AppState & AppActions>()(
   devtools(
-    (set) => ({
-      ...initialState,
+    persist(
+      (set) => ({
+        ...initialState,
 
-      // 阶段管理
-      setStage: (stage) =>
-        set((state) => ({
-          ...state,
-          stage,
-        })),
+        // 阶段管理
+        setStage: (stage) =>
+          set((state) => ({
+            ...state,
+            stage,
+          })),
 
-      // 视频管理
-      setVideoFile: (videoFile) =>
-        set((state) => ({
-          ...state,
-          videoFile,
-          stage: "transcribe",
-        })),
+        // 视频管理
+        setVideoFile: (videoFile) =>
+          set((state) => ({
+            ...state,
+            videoFile,
+            stage: "transcribe",
+          })),
 
-      setVideoPlayerState: (playerState) =>
-        set((state) => ({
-          ...state,
-          videoPlayerState: {
-            ...state.videoPlayerState,
-            ...playerState,
-          },
-        })),
+        setVideoPlayerState: (playerState) =>
+          set((state) => ({
+            ...state,
+            videoPlayerState: {
+              ...state.videoPlayerState,
+              ...playerState,
+            },
+          })),
 
-      setVideoProcessingProgress: (progress) =>
-        set((state) => ({
-          ...state,
-          videoProcessingProgress: progress,
-        })),
+        setVideoProcessingProgress: (progress) =>
+          set((state) => ({
+            ...state,
+            videoProcessingProgress: progress,
+          })),
 
-      setVideoProcessorConfig: (config) =>
-        set((state) => ({
-          ...state,
-          videoProcessorConfig: {
-            ...state.videoProcessorConfig,
-            ...config,
-          },
-        })),
+        setVideoProcessorConfig: (config) =>
+          set((state) => ({
+            ...state,
+            videoProcessorConfig: {
+              ...state.videoProcessorConfig,
+              ...config,
+            },
+          })),
 
-      // ASR管理（仅进度）
-      setASRProgress: (progress) =>
-        set((state) => ({
-          ...state,
-          asrProgress: progress,
-        })),
+        // ASR管理（仅进度）
+        setASRProgress: (progress) =>
+          set((state) => ({
+            ...state,
+            asrProgress: progress,
+          })),
 
-      setCurrentTime: (time) =>
-        set((state) => ({
-          ...state,
-          currentTime: time,
-        })),
+        setCurrentTime: (time) =>
+          set((state) => ({
+            ...state,
+            currentTime: time,
+          })),
 
-      // UI状态管理
-      setLoading: (isLoading) =>
-        set((state) => ({
-          ...state,
-          isLoading,
-        })),
+        // UI状态管理
+        setLoading: (isLoading) =>
+          set((state) => ({
+            ...state,
+            isLoading,
+          })),
 
-      setError: (error) => {
-        console.error("App error state updated:", error);
-        set((state) => ({
-          ...state,
-          error,
-          isLoading: false,
-        }));
+        setError: (error) => {
+          console.error("App error state updated:", error);
+          set((state) => ({
+            ...state,
+            error,
+            isLoading: false,
+          }));
 
-        // 自动清除错误 - 5秒后
-        if (error) {
-          setTimeout(() => {
-            set((state) => ({
-              ...state,
-              error: null,
-            }));
-          }, 5000);
-        }
-      },
-
-      // 设置管理
-      setLanguage: (language) =>
-        set((state) => {
-          if (typeof window !== "undefined") {
-            try {
-              window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-            } catch (error) {
-              console.warn("Language persistence failed:", error);
-            }
+          // 自动清除错误 - 5秒后
+          if (error) {
+            setTimeout(() => {
+              set((state) => ({
+                ...state,
+                error: null,
+              }));
+            }, 5000);
           }
-          return {
+        },
+
+        // 设置管理
+        setLanguage: (language) =>
+          set((state) => ({
             ...state,
             language,
-          };
+          })),
+
+        setDeviceType: (deviceType) =>
+          set((state) => ({
+            ...state,
+            deviceType,
+          })),
+
+        // 重置
+        reset: () =>
+          set((state) => ({
+            ...initialState,
+            language: state.language, // 保持语言设置
+            deviceType: state.deviceType, // 保持设备类型设置
+            videoProcessorConfig: state.videoProcessorConfig, // 保持导出配置
+          })),
+
+        // 初始化
+        initialize: async () => {
+          // 如果用户已有持久化配置，不覆盖 deviceType
+          const hasSavedConfig = (() => {
+            try {
+              const saved = localStorage.getItem("app-config");
+              if (!saved) return false;
+              const parsed = JSON.parse(saved);
+              return parsed?.state?.deviceType !== undefined;
+            } catch {
+              return false;
+            }
+          })();
+          if (!hasSavedConfig) {
+            try {
+              const supportsWebGPU = await hasWebGPU();
+              set((state) => ({
+                ...state,
+                deviceType: supportsWebGPU ? "webgpu" : "wasm",
+              }));
+            } catch (error) {
+              console.warn("Device detection failed:", error);
+            }
+          }
+        },
+      }),
+      {
+        name: "app-config",
+        partialize: (state: AppState & AppActions) => ({
+          language: state.language,
+          deviceType: state.deviceType,
+          videoProcessorConfig: state.videoProcessorConfig,
         }),
-
-      setDeviceType: (deviceType) =>
-        set((state) => ({
-          ...state,
-          deviceType,
-        })),
-
-      // 重置
-      reset: () =>
-        set((state) => ({
-          ...initialState,
-          language: state.language, // 保持语言设置
-          deviceType: state.deviceType, // 保持设备类型设置
-        })),
-
-      // 初始化
-      initialize: async () => {
-        try {
-          // 检测设备支持
-          const supportsWebGPU = await hasWebGPU();
-          set((state) => ({
-            ...state,
-            deviceType: supportsWebGPU ? "webgpu" : "wasm",
-          }));
-        } catch (error) {
-          console.warn("Device detection failed:", error);
-          set((state) => ({
-            ...state,
-            deviceType: "wasm",
-          }));
-        }
-      },
-    }),
-    {
-      name: "app-store", // 用于Redux DevTools
-    }
+      }
+    )
   )
 );
 
