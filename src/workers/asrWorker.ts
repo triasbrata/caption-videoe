@@ -4,59 +4,54 @@
 import { pipeline, env } from "@huggingface/transformers";
 import type { ASRProgress, SubtitleTranscript } from "../types/subtitle";
 import { isValidLanguageCode } from "../constants/languages";
-import { validateModelCache, fetchWithCache } from "../utils/modelCache";
 
-// ---------------------------------------------------------------------------
-// OSS configuration
-// ---------------------------------------------------------------------------
-
+// 配置模型加载路径 - 使用 OSS
+// OSS 配置：fly-cut bucket, oss-cn-hangzhou.aliyuncs.com
 const OSS_BASE_URL = "https://fly-cut.oss-cn-hangzhou.aliyuncs.com";
 const OSS_MODEL_PATH = "models/onnx-community/whisper-small";
+
+// 配置 transformers.js 环境以从 OSS 加载模型
 const modelBaseURL = `${OSS_BASE_URL}/${OSS_MODEL_PATH}`;
 console.log("ASR OSS model path configured:", modelBaseURL);
 
-// Disable transformers.js's own browser cache — we manage caching ourselves
-// in the fetch interceptor so we can validate checksums on each startup.
-env.useBrowserCache = false;
-env.allowRemoteModels = true;
+// transformers.js 不支持直接将 HTTP URL 作为模型 ID
+// 我们需要拦截文件加载请求，将 Hugging Face Hub 的 URL 重定向到 OSS
+// 方法：重写全局 fetch 函数来拦截模型文件请求
 
+// 保存原始的 fetch 函数
 const use_oss_server = false;
-
-// ---------------------------------------------------------------------------
-// Fetch interceptor
-// ---------------------------------------------------------------------------
-
-// Keep a reference to the native fetch before we override it so the cache
-// utility can use it for network requests without causing infinite recursion.
 const originalFetch = globalThis.fetch;
+env.allowLocalModels = true;
+env.allowRemoteModels = true;
+env.useBrowserCache = true;
 console.log("🔧 Setting fetch interceptor, OSS path:", modelBaseURL);
 
-/**
- * Override globalThis.fetch to:
- *  1. Redirect HuggingFace model URLs → OSS URLs.
- *  2. Serve model files from the Cache API when available.
- *  3. Store fresh downloads in the Cache API for future use.
- */
+// 重写 fetch 函数以从 OSS 加载文件
 globalThis.fetch = async (
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> => {
-  if (!use_oss_server) {
-    return originalFetch(input, init);
-  }
   const url =
     typeof input === "string"
       ? input
       : input instanceof URL
         ? input.href
-        : (input as Request).url;
+        : input.url;
 
+  // 检查是否是 Hugging Face Hub 的模型文件请求
   if (
-    url?.includes("huggingface.co") &&
+    url &&
+    url.includes("huggingface.co") &&
     url.includes("onnx-community/whisper-small")
   ) {
     console.log("🔍 Detected Hugging Face request:", url);
-
+    if (!use_oss_server) {
+      return originalFetch(input, init);
+    }
+    // 匹配 Hugging Face Hub 的 URL 格式：
+    // https://huggingface.co/onnx-community/whisper-small/resolve/main/tokenizer_config.json
+    // 或
+    // https://huggingface.co/onnx-community/whisper-small/raw/main/tokenizer_config.json
     const match = url.match(
       /onnx-community\/whisper-small\/(?:resolve|raw)\/[^/]+\/(.+)$/
     );
@@ -65,17 +60,25 @@ globalThis.fetch = async (
       const ossUrl = `${modelBaseURL}/${filePath}`;
       console.log(`🔄 Redirecting to OSS: ${filePath} -> ${ossUrl}`);
       try {
-        return await fetchWithCache(originalFetch, url, init);
+        return await originalFetch(ossUrl, init);
       } catch (error) {
         console.error(`❌ OSS request failed: ${ossUrl}`, error);
         throw error;
       }
     }
 
+    // 也尝试匹配其他可能的格式
     const match2 = url.match(/onnx-community\/whisper-small\/(.+)$/);
     if (match2) {
+      const filePath = match2[1];
+      // 跳过 resolve/main/ 或 raw/main/ 等路径段
+      const cleanPath = filePath.replace(/^(resolve|raw)\/[^/]+\//, "");
+      const ossUrl = `${modelBaseURL}/${cleanPath}`;
+      console.log(
+        `🔄 Redirecting to OSS (format 2): ${cleanPath} -> ${ossUrl}`
+      );
       try {
-        return await fetchWithCache(originalFetch, url, init);
+        return await originalFetch(ossUrl, init);
       } catch (error) {
         console.error(`❌ OSS request failed: ${ossUrl}`, error);
         throw error;
@@ -85,14 +88,13 @@ globalThis.fetch = async (
     console.warn("⚠️ Unable to match URL format:", url);
   }
 
+  // 其他请求使用原始 fetch
   return originalFetch(input, init);
 };
 
-// ---------------------------------------------------------------------------
-// Pipeline singleton
-// ---------------------------------------------------------------------------
-
+// 获取模型 ID（使用原始的 Hugging Face 模型 ID）
 function getModelId(): string {
+  // 使用原始的模型 ID，fetch 拦截器会将请求重定向到 OSS
   return "onnx-community/whisper-small";
 }
 
@@ -110,6 +112,9 @@ const PER_DEVICE_CONFIG = {
   },
 } as const;
 
+/**
+ * ASR 管道单例模式 - 句子级别时间戳版本
+ */
 class PipelineSingleton {
   static model_id = getModelId();
   static instance: Awaited<ReturnType<typeof pipeline>> | null = null;
@@ -119,10 +124,13 @@ class PipelineSingleton {
     device: "webgpu" | "wasm" = "webgpu"
   ) {
     if (!this.instance) {
-      console.log("[ASR] Creating pipeline:", {
+      console.log("ASR creating new pipeline instance:", {
         device,
         model_id: this.model_id,
       });
+
+      // 如果使用 OSS URL，Transformers.js 会直接从该 URL 加载模型文件
+      // 确保 OSS Bucket 已配置 CORS，允许跨域访问
       this.instance = pipeline("automatic-speech-recognition", this.model_id, {
         ...PER_DEVICE_CONFIG[device],
         progress_callback,
@@ -130,69 +138,43 @@ class PipelineSingleton {
     }
     return this.instance;
   }
-
-  static reset() {
-    this.instance = null;
-  }
 }
 
-// ---------------------------------------------------------------------------
-// Load
-// ---------------------------------------------------------------------------
-
+/**
+ * 加载 ASR 模型
+ */
 async function load({ device }: { device: "webgpu" | "wasm" }) {
-  console.log("[ASR] Starting model load:", device);
-
-  // Step 1: Validate the local cache against the remote checksum.
-  // A single HEAD request to config.json retrieves the ETag from OSS.
-  // For single-part uploads OSS sets ETag = MD5(content), which we
-  // treat as the file checksum.  If it differs from the stored value
-  // the cached model files are cleared so they are re-downloaded below.
-  self.postMessage({
-    status: "loading",
-    data: "Checking model cache...",
-  } satisfies ASRProgress);
-
-  const { valid: cacheValid } = await validateModelCache(
-    originalFetch,
-    `${modelBaseURL}/config.json`
-  );
-
-  // Reset the singleton so the pipeline is recreated with fresh files
-  // when the cache was invalidated.
-  if (!cacheValid) {
-    PipelineSingleton.reset();
-  }
+  console.log("ASR worker starting model load:", device);
 
   self.postMessage({
     status: "loading",
-    data: cacheValid
-      ? `Loading model from cache (${device})...`
-      : `Downloading updated model (${device})...`,
+    data: `Loading model (${device})...`,
   } satisfies ASRProgress);
 
-  // Step 2: Load the pipeline.  The fetch interceptor serves files from
-  // the Cache API when available, otherwise downloads from OSS and
-  // caches them for next time.
   try {
+    // 加载管道并保存以供将来使用
     const transcriber = await PipelineSingleton.getInstance((progress) => {
-      console.log("[ASR] Model load progress:", progress);
+      // 添加进度回调以跟踪模型加载
+      console.log("ASR model load progress:", progress);
       self.postMessage(progress);
     }, device);
 
+    // WebGPU 需要预热
     if (device === "webgpu") {
       self.postMessage({
         status: "loading",
         data: "Compiling shaders and warming up model...",
       } satisfies ASRProgress);
 
-      await transcriber(new Float32Array(16_000), { language: "en" });
+      await transcriber(new Float32Array(16_000), {
+        language: "en",
+      });
     }
 
-    console.log("[ASR] Model loaded successfully");
+    console.log("ASR model loaded");
     self.postMessage({ status: "loaded" } satisfies ASRProgress);
   } catch (error) {
-    console.error("[ASR] Model load failed:", error);
+    console.error("ASR model load failed:", error);
     self.postMessage({
       status: "error",
       error: error instanceof Error ? error.message : "Model load failed",
@@ -200,10 +182,9 @@ async function load({ device }: { device: "webgpu" | "wasm" }) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Run
-// ---------------------------------------------------------------------------
-
+/**
+ * 运行 ASR 识别
+ */
 async function run({
   audio,
   language,
@@ -211,7 +192,7 @@ async function run({
   audio: Float32Array;
   language: string;
 }) {
-  console.log("[ASR] Starting recognition:", {
+  console.log("ASR worker starting recognition:", {
     audioLength: audio?.length,
     language,
   });
@@ -225,6 +206,7 @@ async function run({
       data: "Running speech recognition...",
     } satisfies ASRProgress);
 
+    // 确保语言代码正确，如果传入不支持的语言，使用英语作为默认值
     const validLanguage = isValidLanguageCode(language) ? language : "en";
     console.log("ASR language in use:", {
       original: language,
@@ -233,17 +215,19 @@ async function run({
 
     const result = await transcriber(audio, {
       language: validLanguage,
-      return_timestamps: true,
+      return_timestamps: true, // 生成句子级别时间戳
       chunk_length_s: 30,
     });
 
     const end = performance.now();
     console.log("ASR raw recognition result:", result);
 
+    // 处理结果，生成句子级别的字幕片段
     let chunks = [];
     let duration = 0;
 
     if (result.chunks && Array.isArray(result.chunks)) {
+      // Whisper base 模型返回句子级别的chunks
       chunks = result.chunks.map(
         (
           chunk: { text: string; timestamp: [number, number] },
@@ -261,6 +245,7 @@ async function run({
         )
       );
     } else if (result.text) {
+      // 如果没有chunks，创建单个片段
       chunks = [
         {
           text: result.text.trim(),
@@ -283,13 +268,14 @@ async function run({
       duration: transcript.duration,
       time: end - start,
     });
+
     self.postMessage({
       status: "complete",
       result: transcript,
       time: end - start,
     } satisfies ASRProgress);
   } catch (error) {
-    console.error("[ASR] Recognition failed:", error);
+    console.error("ASR recognition failed:", error);
     self.postMessage({
       status: "error",
       error: error instanceof Error ? error.message : "ASR recognition failed",
@@ -297,10 +283,7 @@ async function run({
   }
 }
 
-// ---------------------------------------------------------------------------
-// Message handler
-// ---------------------------------------------------------------------------
-
+// 监听主线程消息
 self.addEventListener("message", async (e) => {
   console.log("ASR worker received message:", e.data);
   const { type, data } = e.data;
@@ -320,7 +303,8 @@ self.addEventListener("message", async (e) => {
         status: "error",
         error: `Unknown message type: ${type}`,
       } satisfies ASRProgress);
+      break;
   }
 });
 
-export {};
+export {}; // 确保这是一个模块
