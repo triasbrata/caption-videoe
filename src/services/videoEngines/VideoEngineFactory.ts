@@ -18,7 +18,7 @@ export class VideoEngineFactory {
   static async createEngine(type: VideoEngineType): Promise<IVideoProcessingEngine> {
     const EngineClass = this.engines.get(type);
     if (!EngineClass) {
-      throw new Error(`不支持的视频处理引擎类型: ${type}`);
+      throw new Error(`Unsupported video processing engine type: ${type}`);
     }
 
     const engine = new EngineClass();
@@ -26,7 +26,7 @@ export class VideoEngineFactory {
     // 检查引擎是否可用
     const capabilities = await engine.checkCapabilities();
     if (!capabilities.supported) {
-      throw new Error(`引擎 ${type} 不可用: ${capabilities.reason}`);
+      throw new Error(`Engine ${type} unavailable: ${capabilities.reason}`);
     }
 
     return engine;
@@ -43,15 +43,15 @@ export class VideoEngineFactory {
     for (const type of preferredOrder) {
       try {
         const engine = await this.createEngine(type);
-        console.log(`选择视频处理引擎: ${type}`);
+        console.log(`Selected video processing engine: ${type}`);
         return { engine, type };
       } catch (error) {
-        console.warn(`引擎 ${type} 不可用:`, error);
+        console.warn(`Engine ${type} unavailable:`, error);
         continue;
       }
     }
     
-    throw new Error('没有可用的视频处理引擎');
+    throw new Error('No available video processing engine');
   }
 
   /**
@@ -68,7 +68,7 @@ export class VideoEngineFactory {
       } catch (error) {
         results[type] = {
           supported: false,
-          reason: error instanceof Error ? error.message : '未知错误',
+          reason: error instanceof Error ? error.message : 'Unknown error',
           formats: [],
           features: {
             trimming: false,
@@ -89,7 +89,7 @@ export class VideoEngineFactory {
    */
   static registerEngine(type: VideoEngineType, engineClass: new () => IVideoProcessingEngine) {
     this.engines.set(type, engineClass);
-    console.log(`注册视频处理引擎: ${type}`);
+    console.log(`Registered video processing engine: ${type}`);
   }
 
   /**

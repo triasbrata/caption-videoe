@@ -6,8 +6,8 @@ import type { SupportedLanguage, LanguageOption } from '@/types/i18n';
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   {
     code: 'zh',
-    name: '中文',
-    nativeName: '中文'
+    name: 'Chinese',
+    nativeName: 'Chinese'
   },
   {
     code: 'en',

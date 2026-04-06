@@ -12,7 +12,7 @@ const OSS_MODEL_PATH = 'models/onnx-community/whisper-small';
 
 // 配置 transformers.js 环境以从 OSS 加载模型
 const modelBaseURL = `${OSS_BASE_URL}/${OSS_MODEL_PATH}`;
-console.log('ASR配置OSS模型路径:', modelBaseURL);
+console.log('ASR OSS model path configured:', modelBaseURL);
 
 // transformers.js 不支持直接将 HTTP URL 作为模型 ID
 // 我们需要拦截文件加载请求，将 Hugging Face Hub 的 URL 重定向到 OSS
@@ -21,7 +21,7 @@ console.log('ASR配置OSS模型路径:', modelBaseURL);
 // 保存原始的 fetch 函数
 const originalFetch = globalThis.fetch;
 
-console.log('🔧 设置 fetch 拦截器，OSS 路径:', modelBaseURL);
+console.log('🔧 Setting fetch interceptor, OSS path:', modelBaseURL);
 
 // 重写 fetch 函数以从 OSS 加载文件
 globalThis.fetch = async function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
@@ -29,7 +29,7 @@ globalThis.fetch = async function(input: RequestInfo | URL, init?: RequestInit):
   
   // 检查是否是 Hugging Face Hub 的模型文件请求
   if (url && url.includes('huggingface.co') && url.includes('onnx-community/whisper-small')) {
-    console.log('🔍 检测到 Hugging Face 请求:', url);
+    console.log('🔍 Detected Hugging Face request:', url);
     
     // 匹配 Hugging Face Hub 的 URL 格式：
     // https://huggingface.co/onnx-community/whisper-small/resolve/main/tokenizer_config.json
@@ -39,11 +39,11 @@ globalThis.fetch = async function(input: RequestInfo | URL, init?: RequestInit):
     if (match) {
       const filePath = match[1];
       const ossUrl = `${modelBaseURL}/${filePath}`;
-      console.log(`🔄 重定向到 OSS: ${filePath} -> ${ossUrl}`);
+      console.log(`🔄 Redirecting to OSS: ${filePath} -> ${ossUrl}`);
       try {
         return await originalFetch(ossUrl, init);
       } catch (error) {
-        console.error(`❌ OSS 请求失败: ${ossUrl}`, error);
+        console.error(`❌ OSS request failed: ${ossUrl}`, error);
         throw error;
       }
     }
@@ -55,16 +55,16 @@ globalThis.fetch = async function(input: RequestInfo | URL, init?: RequestInit):
       // 跳过 resolve/main/ 或 raw/main/ 等路径段
       const cleanPath = filePath.replace(/^(resolve|raw)\/[^/]+\//, '');
       const ossUrl = `${modelBaseURL}/${cleanPath}`;
-      console.log(`🔄 重定向到 OSS (格式2): ${cleanPath} -> ${ossUrl}`);
+      console.log(`🔄 Redirecting to OSS (format 2): ${cleanPath} -> ${ossUrl}`);
       try {
         return await originalFetch(ossUrl, init);
       } catch (error) {
-        console.error(`❌ OSS 请求失败: ${ossUrl}`, error);
+        console.error(`❌ OSS request failed: ${ossUrl}`, error);
         throw error;
       }
     }
     
-    console.warn('⚠️ 无法匹配 URL 格式:', url);
+    console.warn('⚠️ Unable to match URL format:', url);
   }
   
   // 其他请求使用原始 fetch
@@ -100,7 +100,7 @@ class PipelineSingleton {
 
   static async getInstance(progress_callback?: (progress: unknown) => void, device: 'webgpu' | 'wasm' = 'webgpu') {
     if (!this.instance) {
-      console.log('ASR创建新的管道实例:', { device, model_id: this.model_id });
+      console.log('ASR creating new pipeline instance:', { device, model_id: this.model_id });
       
       // 如果使用 OSS URL，Transformers.js 会直接从该 URL 加载模型文件
       // 确保 OSS Bucket 已配置 CORS，允许跨域访问
@@ -117,18 +117,18 @@ class PipelineSingleton {
  * 加载 ASR 模型
  */
 async function load({ device }: { device: 'webgpu' | 'wasm' }) {
-  console.log('ASR Worker开始加载模型:', device);
+  console.log('ASR worker starting model load:', device);
   
   self.postMessage({
     status: 'loading',
-    data: `正在加载模型 (${device})...`,
+    data: `Loading model (${device})...`,
   } satisfies ASRProgress);
 
   try {
     // 加载管道并保存以供将来使用
     const transcriber = await PipelineSingleton.getInstance((progress) => {
       // 添加进度回调以跟踪模型加载
-      console.log('ASR模型加载进度:', progress);
+      console.log('ASR model load progress:', progress);
       self.postMessage(progress);
     }, device);
 
@@ -136,7 +136,7 @@ async function load({ device }: { device: 'webgpu' | 'wasm' }) {
     if (device === 'webgpu') {
       self.postMessage({
         status: 'loading',
-        data: '正在编译着色器并预热模型...',
+        data: 'Compiling shaders and warming up model...',
       } satisfies ASRProgress);
 
       await transcriber(new Float32Array(16_000), {
@@ -144,14 +144,14 @@ async function load({ device }: { device: 'webgpu' | 'wasm' }) {
       });
     }
 
-    console.log('ASR模型加载完成');
+    console.log('ASR model loaded');
     self.postMessage({ status: 'loaded' } satisfies ASRProgress);
     
   } catch (error) {
-    console.error('ASR模型加载失败:', error);
+    console.error('ASR model load failed:', error);
     self.postMessage({
       status: 'error',
-      error: error instanceof Error ? error.message : '模型加载失败',
+      error: error instanceof Error ? error.message : 'Model load failed',
     } satisfies ASRProgress);
   }
 }
@@ -160,7 +160,7 @@ async function load({ device }: { device: 'webgpu' | 'wasm' }) {
  * 运行 ASR 识别
  */
 async function run({ audio, language }: { audio: Float32Array; language: string }) {
-  console.log('ASR Worker开始识别:', { audioLength: audio?.length, language });
+  console.log('ASR worker starting recognition:', { audioLength: audio?.length, language });
   
   try {
     const transcriber = await PipelineSingleton.getInstance();
@@ -168,12 +168,12 @@ async function run({ audio, language }: { audio: Float32Array; language: string 
 
     self.postMessage({
       status: 'running',
-      data: '正在进行语音识别...',
+      data: 'Running speech recognition...',
     } satisfies ASRProgress);
 
     // 确保语言代码正确，如果传入不支持的语言，使用英语作为默认值
     const validLanguage = isValidLanguageCode(language) ? language : 'en';
-    console.log('ASR使用语言:', { original: language, valid: validLanguage });
+    console.log('ASR language in use:', { original: language, valid: validLanguage });
     
     const result = await transcriber(audio, {
       language: validLanguage,
@@ -182,7 +182,7 @@ async function run({ audio, language }: { audio: Float32Array; language: string 
     });
 
     const end = performance.now();
-    console.log('ASR识别原始结果:', result);
+    console.log('ASR raw recognition result:', result);
 
     // 处理结果，生成句子级别的字幕片段
     let chunks = [];
@@ -214,7 +214,7 @@ async function run({ audio, language }: { audio: Float32Array; language: string 
       duration,
     };
 
-    console.log('ASR识别完成:', { 
+    console.log('ASR recognition completed:', { 
       transcriptLength: transcript.chunks.length, 
       duration: transcript.duration, 
       time: end - start 
@@ -227,17 +227,17 @@ async function run({ audio, language }: { audio: Float32Array; language: string 
     } satisfies ASRProgress);
     
   } catch (error) {
-    console.error('ASR识别失败:', error);
+    console.error('ASR recognition failed:', error);
     self.postMessage({
       status: 'error',
-      error: error instanceof Error ? error.message : 'ASR 识别失败',
+      error: error instanceof Error ? error.message : 'ASR recognition failed',
     } satisfies ASRProgress);
   }
 }
 
 // 监听主线程消息
 self.addEventListener('message', async (e) => {
-  console.log('ASR Worker接收消息:', e.data);
+  console.log('ASR worker received message:', e.data);
   const { type, data } = e.data;
 
   switch (type) {
@@ -250,10 +250,10 @@ self.addEventListener('message', async (e) => {
       break;
 
     default:
-      console.error('未知的ASR Worker消息类型:', type);
+      console.error('Unknown ASR worker message type:', type);
       self.postMessage({
         status: 'error',
-        error: `未知的消息类型: ${type}`,
+        error: `Unknown message type: ${type}`,
       } satisfies ASRProgress);
       break;
   }

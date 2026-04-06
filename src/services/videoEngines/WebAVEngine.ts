@@ -38,7 +38,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
       if (typeof Combinator === 'undefined' || typeof MP4Clip === 'undefined') {
         return {
           supported: false,
-          reason: 'WebAV 库未正确加载',
+          reason: 'WebAV library not loaded correctly',
           formats: [],
           features: {
             trimming: false,
@@ -57,7 +57,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
       if (!supported) {
         return {
           supported: false,
-          reason: '浏览器不支持 Canvas 2D',
+          reason: 'Browser does not support Canvas 2D',
           formats: [],
           features: {
             trimming: false,
@@ -84,7 +84,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
     } catch (error) {
       return {
         supported: false,
-        reason: `WebAV 引擎检查失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        reason: `WebAV engine check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         formats: [],
         features: {
           trimming: false,
@@ -100,32 +100,32 @@ export class WebAVEngine implements IVideoProcessingEngine {
   async initialize(videoFile: VideoFile, onProgress?: (progress: VideoProcessingProgress) => void): Promise<void> {
     try {
       this.onProgress = onProgress;
-      this.reportProgress('initializing', 0, '初始化 WebAV 引擎...');
+      this.reportProgress('initializing', 0, 'Initializing WebAV engine...');
 
       // 使用原始工作方式：直接从文件创建stream
       const fileStream = videoFile.file.stream();
       this.videoClip = new MP4Clip(fileStream);
       await this.videoClip.ready;
 
-      this.reportProgress('initializing', 100, 'WebAV 引擎初始化完成');
-      console.log('WebAV 引擎初始化成功:', {
+      this.reportProgress('initializing', 100, 'WebAV engine initialization complete');
+      console.log('WebAV engine initialized successfully:', {
         duration: this.videoClip.meta.duration,
         width: this.videoClip.meta.width,
         height: this.videoClip.meta.height,
       });
     } catch (error) {
-      console.error('WebAV 引擎初始化失败:', error);
-      throw new Error(`WebAV 引擎初始化失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error('WebAV engine initialization failed:', error);
+      throw new Error(`WebAV engine initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async processVideo(segments: VideoSegment[], options: VideoProcessingOptions): Promise<Blob> {
     if (!this.videoClip) {
-      throw new Error('引擎未初始化，请先调用 initialize()');
+      throw new Error('Engine not initialized, call initialize() first');
     }
 
     try {
-      this.reportProgress('processing', 0, '开始处理视频...');
+      this.reportProgress('processing', 0, 'Starting video processing...');
 
       // 筛选保留的片段
       const keptSegments = segments
@@ -133,25 +133,25 @@ export class WebAVEngine implements IVideoProcessingEngine {
         .sort((a, b) => a.start - b.start);
 
       if (keptSegments.length === 0) {
-        throw new Error('没有要保留的视频片段');
+        throw new Error('No video segments selected to keep');
       }
 
-      this.reportProgress('processing', 10, '分析删除片段...');
+      this.reportProgress('processing', 10, 'Analyzing removed segments...');
 
       // 获取所有删除的片段并合并连续片段
       const deletedSegments = this.mergeConsecutiveSegments(
         segments.filter(seg => !seg.keep)
       );
 
-      console.log('删除片段:', deletedSegments.map(s => `${s.start}s-${s.end}s`));
-      console.log('保留片段:', keptSegments.map(s => `${s.start}s-${s.end}s`));
+      console.log('Removed segments:', deletedSegments.map(s => `${s.start}s-${s.end}s`));
+      console.log('Kept segments:', keptSegments.map(s => `${s.start}s-${s.end}s`));
 
-      this.reportProgress('processing', 20, '执行视频分割...');
+      this.reportProgress('processing', 20, 'Splitting video...');
 
       // 使用split方法分割视频
       const splitClips = await this.splitVideoByDeletedSegments(this.videoClip, deletedSegments);
 
-      this.reportProgress('processing', 50, '创建视频合成器...');
+      this.reportProgress('processing', 50, 'Creating video combiner...');
 
       // 创建合成器
       const combinatorOptions: {
@@ -169,14 +169,14 @@ export class WebAVEngine implements IVideoProcessingEngine {
 
       this.combinator = new Combinator(combinatorOptions);
 
-      this.reportProgress('processing', 60, '重新组合视频片段...');
+      this.reportProgress('processing', 60, 'Recombining video segments...');
 
       // 添加分割后的视频片段到合成器
       let totalDuration = 0;
       for (let i = 0; i < splitClips.length; i++) {
         const clip = splitClips[i];
         
-        console.log(`添加视频片段 ${i + 1}/${splitClips.length}, 持续时间: ${clip.meta.duration / 1e6}s`);
+        console.log(`Adding video segment ${i + 1}/${splitClips.length}, duration: ${clip.meta.duration / 1e6}s`);
 
         const sprite = new OffscreenSprite(clip);
         
@@ -191,7 +191,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
         this.reportProgress(
           'processing', 
           60 + (i / splitClips.length) * 15, 
-          `重组片段 ${i + 1}/${splitClips.length}`
+          `Recombining segment ${i + 1}/${splitClips.length}`
         );
       }
 
@@ -208,19 +208,19 @@ export class WebAVEngine implements IVideoProcessingEngine {
       // 根据字幕处理类型添加字幕
       console.log('options.subtitleProcessing:', options.subtitleProcessing, subtitleChunks);
       if (options.subtitleProcessing && options.subtitleProcessing !== 'none' && subtitleChunks.length > 0) {
-        this.reportProgress('processing', 75, '添加字幕到视频...');
+        this.reportProgress('processing', 75, 'Adding subtitles to video...');
         
         await this.addSoftSubtitles(subtitleChunks, keptSegments, options.subtitleStyle);
         
-        this.reportProgress('processing', 78, '字幕添加完成');
+        this.reportProgress('processing', 78, 'Subtitle addition completed');
       }
 
-      this.reportProgress('processing', 80, '开始输出视频...');
+      this.reportProgress('processing', 80, 'Starting video output...');
 
       // 输出视频
       const outputStream = this.combinator.output();
       if (!outputStream) {
-        throw new Error('无法创建视频输出流');
+        throw new Error('Unable to create video output stream');
       }
       
       const chunks: Uint8Array[] = [];
@@ -235,19 +235,19 @@ export class WebAVEngine implements IVideoProcessingEngine {
         totalSize += value.length;
         
         // 简单的进度估计
-        this.reportProgress('processing', 80 + (totalSize / (10 * 1024 * 1024)) * 15, '输出视频数据...');
+        this.reportProgress('processing', 80 + (totalSize / (10 * 1024 * 1024)) * 15, 'Writing video data...');
       }
 
-      this.reportProgress('processing', 95, '完成视频处理...');
+      this.reportProgress('processing', 95, 'Finalizing video processing...');
 
       // 创建最终的 Blob
       const outputBlob = new Blob(chunks.map(chunk => new Uint8Array(chunk)), { 
         type: options.format === 'webm' ? 'video/webm' : 'video/mp4' 
       });
 
-      this.reportProgress('processing', 100, '视频处理完成');
+      this.reportProgress('processing', 100, 'Video processing completed');
 
-      console.log('WebAV 视频处理完成:', {
+      console.log('WebAV Video processing completed:', {
         originalSegments: segments.length,
         keptSegments: keptSegments.length,
         splitClips: splitClips.length,
@@ -258,8 +258,8 @@ export class WebAVEngine implements IVideoProcessingEngine {
 
       return outputBlob;
     } catch (error) {
-      console.error('WebAV 视频处理失败:', error);
-      throw new Error(`视频处理失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error('WebAV video processing failed:', error);
+      throw new Error(`Video processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -276,15 +276,15 @@ export class WebAVEngine implements IVideoProcessingEngine {
       }
       
       this.onProgress = undefined;
-      console.log('WebAV 引擎资源清理完成');
+      console.log('WebAV engine resources cleaned up');
     } catch (error) {
-      console.warn('WebAV 引擎清理时出现警告:', error);
+      console.warn('Warning during WebAV engine cleanup:', error);
     }
   }
 
   configure(config: Record<string, unknown>): void {
     // WebAV 引擎特定的配置选项
-    console.log('WebAV 引擎配置:', config);
+    console.log('WebAV engine configuration:', config);
   }
 
 
@@ -306,7 +306,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
     // 合并重叠的删除片段
     const mergedDeleted = this.mergeOverlappingSegments(deletedSegments);
     
-    console.log('合并后的删除片段:', mergedDeleted.map(s => `${s.start}s-${s.end}s`));
+    console.log('Merged removed segments:', mergedDeleted.map(s => `${s.start}s-${s.end}s`));
 
     const resultClips: MP4Clip[] = [];
     let currentClip = clip;
@@ -318,7 +318,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
       // 如果删除片段开始时间 > 当前时间，保留中间的片段
       if (deleteSegment.start > currentTime) {
         const keepDuration = deleteSegment.start - currentTime;
-        console.log(`保留片段: ${currentTime}s-${deleteSegment.start}s, 时长: ${keepDuration}s`);
+        console.log(`Kept segment: ${currentTime}s-${deleteSegment.start}s, duration: ${keepDuration}s`);
         
         if (keepDuration > 0.01) { // 最小0.01秒片段
           // 在删除片段开始处分割
@@ -338,7 +338,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
       if (deleteDuration > 0 && currentClip) {
         const deleteTime = deleteDuration * 1e6; // 转换为微秒
         
-        console.log(`跳过删除片段: ${deleteSegment.start}s-${deleteSegment.end}s, 时长: ${deleteDuration}s`);
+        console.log(`Skipped removed segment: ${deleteSegment.start}s-${deleteSegment.end}s, duration: ${deleteDuration}s`);
         
         // 检查是否还有足够的视频长度
         if (currentClip.meta.duration > deleteTime) {
@@ -356,11 +356,11 @@ export class WebAVEngine implements IVideoProcessingEngine {
 
     // 如果还有剩余的视频片段，添加到结果中
     if (currentClip && currentClip.meta.duration > 0.01 * 1e6) {
-      console.log(`保留最后的片段，时长: ${currentClip.meta.duration / 1e6}s`);
+      console.log(`Kept final segment, duration: ${currentClip.meta.duration / 1e6}s`);
       resultClips.push(currentClip);
     }
 
-    console.log(`分割完成，共 ${resultClips.length} 个片段`);
+    console.log(`Split complete, total ${resultClips.length} segments`);
     return resultClips;
   }
 
@@ -420,7 +420,7 @@ export class WebAVEngine implements IVideoProcessingEngine {
     }
     
     // WebAV引擎支持软烧录和硬烧录
-    console.log(`WebAV引擎使用${subtitleType === 'soft' ? '软' : '硬'}烧录字幕`);
+    console.log(`WebAV engine uses ${subtitleType === 'soft' ? 'soft' : 'hard'} subtitle burn-in`);
 
     // 计算最终视频中字幕的时间映射
     const subtitleTimeMapping = this.calculateSubtitleTimeMapping(keptSegments, subtitleChunks);
@@ -475,15 +475,15 @@ export class WebAVEngine implements IVideoProcessingEngine {
         // 添加到合成器
         await this.combinator.addSprite(subtitleSprite);
         
-        console.log(`添加字幕 ${subtitleIndex + 1}: "${subtitleChunk.text}" (${mappedTime.startTime / 1e6}s - ${(mappedTime.startTime + mappedTime.duration) / 1e6}s)`);
+        console.log(`Adding subtitle ${subtitleIndex + 1}: "${subtitleChunk.text}" (${mappedTime.startTime / 1e6}s - ${(mappedTime.startTime + mappedTime.duration) / 1e6}s)`);
         
         subtitleIndex++;
       } catch (error) {
-        console.warn(`添加字幕失败:`, subtitleChunk.text, error);
+        console.warn(`Failed to add subtitle:`, subtitleChunk.text, error);
       }
     }
 
-    console.log(`总共添加了 ${subtitleIndex} 个字幕`);
+    console.log(`Added ${subtitleIndex} subtitles in total`);
   }
 
   /**
@@ -567,12 +567,12 @@ export class WebAVEngine implements IVideoProcessingEngine {
       const subtitleStructs = this.generateSubtitleStructs(subtitleChunks, keptSegments);
       
       if (subtitleStructs.length === 0) {
-        console.warn('没有字幕内容可以添加');
+        console.warn('No subtitle content available to add');
         return;
       }
       
-      console.log('生成的字幕结构:', subtitleStructs);
-      console.log('使用的字幕样式:', subtitleStyle);
+      console.log('Generated subtitle structure:', subtitleStructs);
+      console.log('Subtitle style used:', subtitleStyle);
       
       // 使用配置的字幕样式或默认样式
       const effectiveStyle = subtitleStyle || {
@@ -642,9 +642,9 @@ export class WebAVEngine implements IVideoProcessingEngine {
       // 添加到合成器
       await this.combinator.addSprite(subtitleSprite);
       
-      console.log('软烧录字幕添加成功');
+      console.log('Soft subtitle burn-in added successfully');
     } catch (error) {
-      console.error('添加软烧录字幕失败:', error);
+      console.error('Failed to add soft subtitle burn-in:', error);
     }
   }
   

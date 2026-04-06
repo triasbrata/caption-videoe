@@ -3,13 +3,13 @@
 
 export const WHISPER_LANGUAGES = {
   en: 'English',
-  zh: '中文',
+  zh: 'Chinese',
   de: 'Deutsch',
   es: 'Español',
   ru: 'Русский',
   ko: '한국어',
   fr: 'Français',
-  ja: '日本語',
+  ja: 'Japanese',
   pt: 'Português',
   tr: 'Türkçe',
   pl: 'Polski',

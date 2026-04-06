@@ -354,7 +354,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         
         const chunkIndex = newChunks.findIndex(c => c.id === chunkId);
         if (chunkIndex === -1) {
-          console.warn('找不到指定的字幕片段:', chunkId);
+          console.warn('Cannot find the specified subtitle segment:', chunkId);
           return;
         }
         

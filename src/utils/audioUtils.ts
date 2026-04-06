@@ -28,9 +28,9 @@ export async function processAudioForASR(buffer: ArrayBuffer): Promise<Float32Ar
     await audioContext.close();
     return audio;
   } catch (error) {
-    console.error('音频处理失败:', error);
+    console.error('Audio processing failed:', error);
     await audioContext.close();
-    throw new Error(`音频处理失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    throw new Error(`Audio processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -46,7 +46,7 @@ export async function hasWebGPU(): Promise<boolean> {
     const adapter = await (navigator as unknown as { gpu: { requestAdapter(): Promise<unknown> } }).gpu.requestAdapter();
     return !!adapter;
   } catch (e) {
-    console.error('WebGPU检测失败:', e);
+    console.error('WebGPU detection failed:', e);
     return false;
   }
 }

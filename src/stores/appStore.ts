@@ -161,7 +161,7 @@ export const useAppStore = create<AppState & AppActions>()(
         })),
       
       setError: (error) => {
-        console.error('应用错误状态更新:', error)
+        console.error('App error state updated:', error)
         set((state) => ({
           ...state,
           error,
@@ -210,7 +210,7 @@ export const useAppStore = create<AppState & AppActions>()(
             deviceType: supportsWebGPU ? 'webgpu' : 'wasm'
           }))
         } catch (error) {
-          console.warn('设备检测失败:', error)
+          console.warn('Device detection failed:', error)
           set((state) => ({
             ...state,
             deviceType: 'wasm'

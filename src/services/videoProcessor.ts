@@ -19,17 +19,17 @@ export class VideoProcessor {
 
   async initialize(videoFile: VideoFile): Promise<void> {
     try {
-      this.reportProgress('analyzing', 0, '正在初始化视频处理器...');
+      this.reportProgress('analyzing', 0, 'Initializing video processor...');
       
       // 创建视频片段 - 将File转换为ReadableStream
       const fileStream = videoFile.file.stream();
       this.videoClip = new MP4Clip(fileStream);
       await this.videoClip.ready;
 
-      this.reportProgress('analyzing', 30, '视频处理器初始化完成');
+      this.reportProgress('analyzing', 30, 'Video processor initialization complete');
     } catch (error) {
-      console.error('VideoProcessor初始化失败:', error);
-      this.reportProgress('error', 0, '初始化失败', error instanceof Error ? error.message : '未知错误');
+      console.error('VideoProcessor initialization failed:', error);
+      this.reportProgress('error', 0, 'Initialization failed', error instanceof Error ? error.message : 'Unknown error');
       throw error;
     }
   }
@@ -43,11 +43,11 @@ export class VideoProcessor {
     }
   ): Promise<Blob> {
     if (!this.videoClip) {
-      throw new Error('视频处理器未初始化');
+      throw new Error('Video processor not initialized');
     }
 
     try {
-      this.reportProgress('analyzing', 50, '分析视频片段...');
+      this.reportProgress('analyzing', 50, 'Analyzing video segments...');
 
       // 将要保留的片段按时间排序
       const keepSegments = segments
@@ -55,10 +55,10 @@ export class VideoProcessor {
         .sort((a, b) => a.start - b.start);
 
       if (keepSegments.length === 0) {
-        throw new Error('没有选择要保留的片段');
+        throw new Error('No segments selected to keep');
       }
 
-      this.reportProgress('cutting', 0, '创建视频合成器...');
+      this.reportProgress('cutting', 0, 'Creating video combiner...');
 
       // 创建合成器 - 修正audio选项类型
       const combinatorOptions: {
@@ -77,7 +77,7 @@ export class VideoProcessor {
       
       this.combinator = new Combinator(combinatorOptions);
 
-      this.reportProgress('cutting', 20, '添加视频片段...');
+      this.reportProgress('cutting', 20, 'Adding video segments...');
 
       // 简化版实现：为每个保留的片段创建一个OffscreenSprite
       // 注意：这个实现可能不完美，但展示了基本概念
@@ -87,7 +87,7 @@ export class VideoProcessor {
         const segment = keepSegments[i];
         const progress = Math.round(20 + (i / keepSegments.length) * 40);
         
-        this.reportProgress('cutting', progress, `添加片段 ${i + 1}/${keepSegments.length}`);
+        this.reportProgress('cutting', progress, `Adding segment ${i + 1}/${keepSegments.length}`);
 
         // 创建sprite并设置时间
         const sprite = new OffscreenSprite(this.videoClip);
@@ -104,12 +104,12 @@ export class VideoProcessor {
         totalDuration += (segment.end - segment.start);
       }
 
-      this.reportProgress('encoding', 0, '开始合成视频...');
+      this.reportProgress('encoding', 0, 'Starting video composition...');
 
       // 生成输出流
       const outputStream = this.combinator.output();
       
-      this.reportProgress('encoding', 20, '正在读取视频流...');
+      this.reportProgress('encoding', 20, 'Reading video stream...');
       
       // 将流转换为Blob
       const chunks: Uint8Array[] = [];
@@ -123,20 +123,20 @@ export class VideoProcessor {
         
         // 更新进度
         progress = Math.min(90, progress + 1);
-        this.reportProgress('encoding', progress, '正在编码...');
+        this.reportProgress('encoding', progress, 'Encoding...');
       }
 
       const resultBlob = new Blob(chunks, {
         type: 'video/mp4'
       });
 
-      this.reportProgress('complete', 100, '视频处理完成！');
+      this.reportProgress('complete', 100, 'Video processing completed！');
       return resultBlob;
 
     } catch (error) {
-      console.error('视频处理失败:', error);
-      const errorMessage = error instanceof Error ? error.message : '处理失败';
-      this.reportProgress('error', 0, '视频处理失败', errorMessage);
+      console.error('Video processing failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Processing failed';
+      this.reportProgress('error', 0, 'Video processing failed', errorMessage);
       throw error;
     }
   }
@@ -169,7 +169,7 @@ export class VideoProcessor {
         this.videoClip = null;
       }
     } catch (error) {
-      console.error('清理视频处理器时出错:', error);
+      console.error('Error while cleaning up video processor:', error);
     }
   }
 }

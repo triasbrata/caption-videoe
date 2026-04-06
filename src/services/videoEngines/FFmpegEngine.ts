@@ -35,7 +35,7 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       if (!supportsSharedArrayBuffer) {
         return {
           supported: false,
-          reason: '浏览器不支持 SharedArrayBuffer，请确保网站在 HTTPS 环境下运行并启用了跨域隔离',
+          reason: 'Browser does not support SharedArrayBuffer; ensure HTTPS and cross-origin isolation are enabled',
           formats: [],
           features: {
             trimming: false,
@@ -50,7 +50,7 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       if (!supportsWasm) {
         return {
           supported: false,
-          reason: '浏览器不支持 WebAssembly',
+          reason: 'Browser does not support WebAssembly',
           formats: [],
           features: {
             trimming: false,
@@ -77,7 +77,7 @@ export class FFmpegEngine implements IVideoProcessingEngine {
     } catch (error) {
       return {
         supported: false,
-        reason: `FFmpeg 引擎检查失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        reason: `FFmpeg engine check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         formats: [],
         features: {
           trimming: false,
@@ -93,7 +93,7 @@ export class FFmpegEngine implements IVideoProcessingEngine {
   async initialize(videoFile: VideoFile, onProgress?: (progress: VideoProcessingProgress) => void): Promise<void> {
     try {
       this.onProgress = onProgress;
-      this.reportProgress('initializing', 0, '加载 FFmpeg.wasm...');
+      this.reportProgress('initializing', 0, 'Loading FFmpeg.wasm...');
 
       // 动态加载 FFmpeg.wasm
       if (!window.FFmpeg) {
@@ -104,11 +104,11 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       const { FFmpeg } = window.FFmpeg;
       this.ffmpeg = new FFmpeg();
 
-      this.reportProgress('initializing', 30, '初始化 FFmpeg 实例...');
+      this.reportProgress('initializing', 30, 'Initializing FFmpeg instance...');
 
       // 设置进度回调
       this.ffmpeg.on('progress', ({ progress }: { progress: number }) => {
-        this.reportProgress('processing', progress * 100, '处理中...');
+        this.reportProgress('processing', progress * 100, 'Processing...');
       });
 
       this.ffmpeg.on('log', ({ message }: { message: string }) => {
@@ -116,10 +116,10 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       });
 
       // 加载 FFmpeg 核心
-      this.reportProgress('initializing', 60, '加载 FFmpeg 核心...');
+      this.reportProgress('initializing', 60, 'Loading FFmpeg core...');
       await this.ffmpeg.load();
 
-      this.reportProgress('initializing', 90, '准备视频文件...');
+      this.reportProgress('initializing', 90, 'Preparing video file...');
 
       // 将视频文件写入 FFmpeg 文件系统
       const videoData = await fetch(videoFile.url).then(r => r.arrayBuffer());
@@ -127,22 +127,22 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       await this.ffmpeg.writeFile(videoFileName, new Uint8Array(videoData));
 
       this.isLoaded = true;
-      this.reportProgress('initializing', 100, 'FFmpeg 引擎初始化完成');
+      this.reportProgress('initializing', 100, 'FFmpeg engine initialization complete');
 
-      console.log('FFmpeg 引擎初始化成功');
+      console.log('FFmpeg engine initialized successfully');
     } catch (error) {
-      console.error('FFmpeg 引擎初始化失败:', error);
-      throw new Error(`FFmpeg 引擎初始化失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error('FFmpeg engine initialization failed:', error);
+      throw new Error(`FFmpeg engine initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async processVideo(segments: VideoSegment[], options: VideoProcessingOptions): Promise<Blob> {
     if (!this.isLoaded || !this.ffmpeg) {
-      throw new Error('引擎未初始化，请先调用 initialize()');
+      throw new Error('Engine not initialized, call initialize() first');
     }
 
     try {
-      this.reportProgress('processing', 0, '分析视频片段...');
+      this.reportProgress('processing', 0, 'Analyzing video segments...');
 
       // 筛选保留的片段
       const keptSegments = segments
@@ -150,14 +150,14 @@ export class FFmpegEngine implements IVideoProcessingEngine {
         .sort((a, b) => a.start - b.start);
 
       if (keptSegments.length === 0) {
-        throw new Error('没有要保留的视频片段');
+        throw new Error('No video segments selected to keep');
       }
 
       const inputFileName = 'input.mp4'; // 假设输入是 MP4
       const outputFormat = options.format || 'mp4';
       const outputFileName = `output.${outputFormat}`;
 
-      this.reportProgress('processing', 10, '构建 FFmpeg 命令...');
+      this.reportProgress('processing', 10, 'Building FFmpeg command...');
 
       // 构建 FFmpeg 命令
       const ffmpegArgs = this.buildFFmpegCommand(
@@ -167,13 +167,13 @@ export class FFmpegEngine implements IVideoProcessingEngine {
         options
       );
 
-      console.log('执行 FFmpeg 命令:', ffmpegArgs.join(' '));
-      this.reportProgress('processing', 20, '执行视频处理...');
+      console.log('Executing FFmpeg command:', ffmpegArgs.join(' '));
+      this.reportProgress('processing', 20, 'Running video processing...');
 
       // 执行 FFmpeg 命令
       await this.ffmpeg.exec(ffmpegArgs);
 
-      this.reportProgress('processing', 90, '读取处理结果...');
+      this.reportProgress('processing', 90, 'Reading processing result...');
 
       // 读取输出文件
       const outputData = await this.ffmpeg.readFile(outputFileName);
@@ -182,9 +182,9 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       const mimeType = this.getMimeType(outputFormat);
       const outputBlob = new Blob([outputData], { type: mimeType });
 
-      this.reportProgress('processing', 100, '视频处理完成');
+      this.reportProgress('processing', 100, 'Video processing completed');
 
-      console.log('FFmpeg 视频处理完成:', {
+      console.log('FFmpeg Video processing completed:', {
         originalSegments: segments.length,
         keptSegments: keptSegments.length,
         outputSize: outputBlob.size,
@@ -193,8 +193,8 @@ export class FFmpegEngine implements IVideoProcessingEngine {
 
       return outputBlob;
     } catch (error) {
-      console.error('FFmpeg 视频处理失败:', error);
-      throw new Error(`视频处理失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error('FFmpeg video processing failed:', error);
+      throw new Error(`Video processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -210,7 +210,7 @@ export class FFmpegEngine implements IVideoProcessingEngine {
             }
           }
         } catch (e) {
-          console.warn('清理 FFmpeg 临时文件时出现警告:', e);
+          console.warn('Warning while cleaning FFmpeg temporary files:', e);
         }
 
         this.ffmpeg = null;
@@ -218,15 +218,15 @@ export class FFmpegEngine implements IVideoProcessingEngine {
       
       this.isLoaded = false;
       this.onProgress = undefined;
-      console.log('FFmpeg 引擎资源清理完成');
+      console.log('FFmpeg engine resources cleaned up');
     } catch (error) {
-      console.warn('FFmpeg 引擎清理时出现警告:', error);
+      console.warn('Warning during FFmpeg engine cleanup:', error);
     }
   }
 
   configure(config: Record<string, any>): void {
     // FFmpeg 引擎特定的配置选项
-    console.log('FFmpeg 引擎配置:', config);
+    console.log('FFmpeg engine configuration:', config);
   }
 
   private async loadFFmpegLibrary(): Promise<void> {
@@ -237,7 +237,7 @@ export class FFmpegEngine implements IVideoProcessingEngine {
     
     return new Promise((resolve, reject) => {
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('无法加载 FFmpeg.wasm 库'));
+      script.onerror = () => reject(new Error('Unable to load FFmpeg.wasm library'));
       document.head.appendChild(script);
     });
   }

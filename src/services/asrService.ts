@@ -13,7 +13,7 @@ export class ASRService {
   // private currentLanguage: string = 'en'; // TODO: Implement language switching
 
   constructor() {
-    console.log('ASR Service初始化');
+    console.log('ASR service initialized');
     this.init();
   }
 
@@ -24,7 +24,7 @@ export class ASRService {
     // 检测设备能力
     const supportsWebGPU = await hasWebGPU();
     this.currentDevice = supportsWebGPU ? 'webgpu' : 'wasm';
-    console.log('ASR设备检测结果:', { supportsWebGPU, currentDevice: this.currentDevice });
+    console.log('ASR device detection result:', { supportsWebGPU, currentDevice: this.currentDevice });
   }
 
   /**
@@ -32,15 +32,15 @@ export class ASRService {
    */
   private createWorker(): Worker {
     if (this.worker) {
-      console.log('ASR终止现有Worker');
+      console.log('ASR terminating existing worker');
       this.worker.terminate();
     }
 
-    console.log('ASR创建新Worker');
+    console.log('ASR creating new worker');
     this.worker = new asrWorker()
 
     this.worker.onmessage = (e) => {
-      console.log('ASR Worker消息接收:', e.data);
+      console.log('ASR worker message received:', e.data);
       const progress = e.data as ASRProgress;
       
       // 更新模型加载状态
@@ -57,11 +57,11 @@ export class ASRService {
     };
 
     this.worker.onerror = (error) => {
-      console.error('ASR Worker错误:', error);
+      console.error('ASR worker error:', error);
       if (this.onProgress) {
         this.onProgress({
           status: 'error',
-          error: 'Worker 运行错误',
+          error: 'Worker runtime error',
         });
       }
     };
@@ -88,7 +88,7 @@ export class ASRService {
    */
   public setDevice(device: 'webgpu' | 'wasm') {
     if (this.currentDevice !== device) {
-      console.log('ASR设备类型变更:', this.currentDevice, '->', device);
+      console.log('ASR device type changed:', this.currentDevice, '->', device);
       this.currentDevice = device;
       this.isModelLoaded = false; // 重置模型加载状态
       
@@ -104,7 +104,7 @@ export class ASRService {
    * 加载模型
    */
   public async loadModel(): Promise<void> {
-    console.log('ASR开始加载模型:', this.currentDevice);
+    console.log('ASR starting model load:', this.currentDevice);
     
     if (!this.worker) {
       this.createWorker();
@@ -112,8 +112,8 @@ export class ASRService {
 
     return new Promise((resolve, reject) => {
       if (!this.worker) {
-        console.error('ASR Worker创建失败');
-        reject(new Error('Worker 创建失败'));
+        console.error('ASR worker creation failed');
+        reject(new Error('Worker creation failed'));
         return;
       }
 
@@ -127,17 +127,17 @@ export class ASRService {
 
         // 处理加载完成
         if (progress.status === 'loaded') {
-          console.log('ASR模型加载完成');
+          console.log('ASR model loaded');
           this.onProgress = originalCallback;
           resolve();
         } else if (progress.status === 'error') {
-          console.error('ASR模型加载失败:', progress.error);
+          console.error('ASR model load failed:', progress.error);
           this.onProgress = originalCallback;
-          reject(new Error(progress.error || '模型加载失败'));
+          reject(new Error(progress.error || 'Model load failed'));
         }
       };
 
-      console.log('ASR发送模型加载消息:', { device: this.currentDevice });
+      console.log('ASR sending model load message:', { device: this.currentDevice });
       this.worker.postMessage({
         type: 'load',
         data: { device: this.currentDevice },
@@ -149,17 +149,17 @@ export class ASRService {
    * 准备模型（分步操作第一步）
    */
   public async prepareModel(): Promise<void> {
-    console.log('ASR准备模型:', this.currentDevice);
+    console.log('ASR preparing model:', this.currentDevice);
     
     if (!this.worker) {
       this.createWorker();
     }
 
     if (!this.isModelLoaded) {
-      console.log('ASR开始加载模型');
+      console.log('ASR starting model load');
       await this.loadModel();
     } else {
-      console.log('ASR模型已加载，跳过准备步骤');
+      console.log('ASR model already loaded, skipping preparation');
     }
   }
 
@@ -170,11 +170,11 @@ export class ASRService {
     audioBuffer: ArrayBuffer,
     language: string = 'en'
   ): Promise<SubtitleTranscript> {
-    console.log('ASR开始转录:', { bufferSize: audioBuffer.byteLength, language });
+    console.log('ASR starting transcription:', { bufferSize: audioBuffer.byteLength, language });
     
     // 检查模型是否已准备好
     if (!this.isModelLoaded || !this.worker) {
-      throw new Error('模型未准备好，请先调用 prepareModel()');
+      throw new Error('Model not ready, call prepareModel() first');
     }
     
     // 保存当前语言用于结果格式化
@@ -182,12 +182,12 @@ export class ASRService {
 
     // 处理音频数据
     const audioData = await processAudioForASR(audioBuffer);
-    console.log('ASR音频数据处理完成:', { audioDataLength: audioData.length });
+    console.log('ASR audio data processed:', { audioDataLength: audioData.length });
 
     return new Promise((resolve, reject) => {
       if (!this.worker) {
-        console.error('ASR Worker不可用');
-        reject(new Error('Worker 不可用'));
+        console.error('ASR worker unavailable');
+        reject(new Error('Worker unavailable'));
         return;
       }
 
@@ -204,13 +204,13 @@ export class ASRService {
           this.onProgress = originalCallback;
           resolve(progress.result);
         } else if (progress.status === 'error') {
-          console.error('ASR识别失败:', progress.error);
+          console.error('ASR recognition failed:', progress.error);
           this.onProgress = originalCallback;
-          reject(new Error(progress.error || 'ASR 识别失败'));
+          reject(new Error(progress.error || 'ASR recognition failed'));
         }
       };
 
-      console.log('ASR发送识别消息:', { audioLength: audioData.length, language });
+      console.log('ASR sending transcription message:', { audioLength: audioData.length, language });
       this.worker.postMessage({
         type: 'run',
         data: { audio: audioData, language },
@@ -240,7 +240,7 @@ export class ASRService {
    * 销毁服务
    */
   public destroy() {
-    console.log('ASR销毁服务');
+    console.log('ASR service destroyed');
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;

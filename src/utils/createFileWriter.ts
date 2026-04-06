@@ -34,7 +34,7 @@ export async function saveFile(
       await writable.write(blob);
       await writable.close();
     } else {
-      // 降级到传统下载方式
+      // 降级到传统Download方式
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -45,8 +45,8 @@ export async function saveFile(
       setTimeout(() => URL.revokeObjectURL(url), 100);
     }
   } catch (error) {
-    console.error('保存文件失败:', error);
-    // 如果用户取消了文件选择或其他错误，降级到传统下载
+    console.error('Failed to save file:', error);
+    // 如果用户取消了文件选择或其他错误，降级到传统Download
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

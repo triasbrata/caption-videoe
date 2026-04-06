@@ -140,17 +140,17 @@ export const useMessageStore = create<MessageStore>()(
         const id = get().addMessage({
           type: 'processing',
           title,
-          content: '正在初始化视频处理...',
+          content: 'Initializing video processing...',
           persistent: true,
           progress: {
             stage: 'analyzing',
             progress: 0,
-            message: '正在分析视频文件...'
+            message: 'Analyzing video file...'
           }
         });
         
         toast.loading(title, {
-          description: '视频处理已开始',
+          description: 'Video processing started',
           id: `processing_${id}`,
         });
         
@@ -164,7 +164,7 @@ export const useMessageStore = create<MessageStore>()(
         });
         
         // 更新toast
-        toast.loading(`处理进度: ${progress.progress}%`, {
+        toast.loading(`Processing progress: ${progress.progress}%`, {
           description: progress.message,
           id: `processing_${id}`,
         });
@@ -185,25 +185,25 @@ export const useMessageStore = create<MessageStore>()(
         
         get().updateMessage(id, {
           type: 'success',
-          title: '视频处理完成',
-          content: `文件大小: ${(blob.size / 1024 / 1024).toFixed(2)} MB`,
+          title: 'Video processing completed',
+          content: `File size: ${(blob.size / 1024 / 1024).toFixed(2)} MB`,
           processingResult: { blob, filename },
           action: {
-            label: '下载视频',
+            label: 'Download video',
             handler: downloadHandler
           },
           progress: {
             stage: 'complete',
             progress: 100,
-            message: '处理完成'
+            message: 'Processing completed'
           }
         });
         
-        toast.success('视频处理完成', {
-          description: '点击下载按钮保存视频',
+        toast.success('Video processing completed', {
+          description: 'Click the download button to save the video',
           id: `processing_${id}`,
           action: {
-            label: '下载',
+            label: 'Download',
             onClick: downloadHandler
           }
         });
@@ -212,17 +212,17 @@ export const useMessageStore = create<MessageStore>()(
       errorVideoProcessing: (id, error) => {
         get().updateMessage(id, {
           type: 'error',
-          title: '视频处理失败',
+          title: 'Video processing failed',
           content: error,
           progress: {
             stage: 'error',
             progress: 0,
-            message: '处理失败',
+            message: 'Processing failed',
             error
           }
         });
         
-        toast.error('视频处理失败', {
+        toast.error('Video processing failed', {
           description: error,
           id: `processing_${id}`,
         });
