@@ -35,6 +35,15 @@ export interface ASRProgress {
   error?: string;
 }
 
+export interface TranslationProgress {
+  status: "loading" | "loaded" | "running" | "complete" | "error";
+  data?: string;
+  progress?: number;
+  total?: number;
+  result?: SubtitleTranscript;
+  error?: string;
+}
+
 export interface SubtitleEditorState {
   transcript: SubtitleTranscript | null;
   currentTime: number;

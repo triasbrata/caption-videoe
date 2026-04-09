@@ -7,7 +7,7 @@ import type {
   VideoProcessingProgress,
   VideoProcessorConfig,
 } from "@/types/video";
-import type { ASRProgress } from "@/types/subtitle";
+import type { ASRProgress, TranslationProgress } from "@/types/subtitle";
 import { hasWebGPU } from "@/utils/audioUtils";
 
 // 应用状态接口
@@ -24,6 +24,10 @@ export interface AppState {
   // ASR相关状态（仅进度，实际数据在historyStore）
   asrProgress: ASRProgress | null;
   currentTime: number;
+
+  // 翻译相关状态
+  translationProgress: TranslationProgress | null;
+  translationLanguage: string;
 
   // UI状态
   isLoading: boolean;
@@ -48,6 +52,10 @@ export interface AppActions {
   // ASR管理（仅进度）
   setASRProgress: (progress: ASRProgress) => void;
   setCurrentTime: (time: number) => void;
+
+  // 翻译管理
+  setTranslationProgress: (progress: TranslationProgress) => void;
+  setTranslationLanguage: (language: string) => void;
 
   // UI状态管理
   setLoading: (isLoading: boolean) => void;
@@ -87,6 +95,9 @@ const initialState: AppState = {
 
   asrProgress: null,
   currentTime: 0,
+
+  translationProgress: null,
+  translationLanguage: "zh",
 
   isLoading: false,
   error: null,
@@ -154,6 +165,19 @@ export const useAppStore = create<AppState & AppActions>()(
             currentTime: time,
           })),
 
+        // 翻译管理
+        setTranslationProgress: (progress) =>
+          set((state) => ({
+            ...state,
+            translationProgress: progress,
+          })),
+
+        setTranslationLanguage: (language) =>
+          set((state) => ({
+            ...state,
+            translationLanguage: language,
+          })),
+
         // UI状态管理
         setLoading: (isLoading) =>
           set((state) => ({
@@ -199,6 +223,7 @@ export const useAppStore = create<AppState & AppActions>()(
             ...initialState,
             language: state.language, // 保持语言设置
             deviceType: state.deviceType, // 保持设备类型设置
+            translationLanguage: state.translationLanguage, // 保持翻译语言设置
             videoProcessorConfig: state.videoProcessorConfig, // 保持导出配置
           })),
 
@@ -233,6 +258,7 @@ export const useAppStore = create<AppState & AppActions>()(
         partialize: (state: AppState & AppActions) => ({
           language: state.language,
           deviceType: state.deviceType,
+          translationLanguage: state.translationLanguage,
           videoProcessorConfig: state.videoProcessorConfig,
         }),
       }

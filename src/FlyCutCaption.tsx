@@ -16,6 +16,7 @@ import { EnhancedVideoPlayer } from "@/components/VideoPlayer/EnhancedVideoPlaye
 import type { EnhancedVideoPlayerRef } from "@/components/VideoPlayer/EnhancedVideoPlayer";
 import { SubtitleList } from "@/components/SubtitleEditor/SubtitleList";
 import { ASRPanel } from "@/components/ProcessingPanel/ASRPanel";
+import { TranslationPanel } from "@/components/ProcessingPanel/TranslationPanel";
 import {
   ExportDialog,
   type VideoExportOptions,
@@ -40,7 +41,7 @@ import {
 } from "@/stores/messageStore";
 import { UnifiedVideoProcessor } from "@/services/UnifiedVideoProcessor";
 import { saveFile } from "@/utils/createFileWriter";
-import { Scissors, FileText, Upload, Download, Video } from "lucide-react";
+import { Scissors, FileText, Upload, Download, Video, Languages } from "lucide-react";
 import {
   Menubar,
   MenubarContent,
@@ -232,6 +233,9 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
   // 字幕样式状态
   const [subtitleStyle, setSubtitleStyle] =
     useState<SubtitleStyle>(defaultSubtitleStyle);
+
+  // 左侧面板标签页（edit stage）
+  const [leftPanelTab, setLeftPanelTab] = useState<"subtitles" | "translation">("subtitles");
 
   // 视频播放器引用
   const videoPlayerRef = useRef<EnhancedVideoPlayerRef>(null);
@@ -503,22 +507,50 @@ function FlyCutCaptionContent(props: FlyCutCaptionProps) {
           </div>
         )}
 
-        {/* 字幕编辑器 */}
+        {/* 字幕编辑器 + 翻译面板（edit stage） */}
         {stage === "edit" && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-4">
-              <h3 className="text-sm font-medium flex items-center space-x-2">
+            {/* 标签页切换 */}
+            <div className="flex-shrink-0 flex border-b">
+              <button
+                type="button"
+                onClick={() => setLeftPanelTab("subtitles")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
+                  leftPanelTab === "subtitles"
+                    ? "border-b-2 border-primary text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
                 <FileText className="h-4 w-4" />
-                <span>{t("components.subtitleEditor.title")}</span>
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
                 {t("components.subtitleEditor.title")}
-              </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeftPanelTab("translation")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
+                  leftPanelTab === "translation"
+                    ? "border-b-2 border-primary text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Languages className="h-4 w-4" />
+                {t("components.translationPanel.title")}
+              </button>
             </div>
 
-            <div className="flex-1 overflow-hidden">
-              <SubtitleList videoPlayerRef={videoPlayerRef} />
-            </div>
+            {/* 字幕列表 */}
+            {leftPanelTab === "subtitles" && (
+              <div className="flex-1 overflow-hidden">
+                <SubtitleList videoPlayerRef={videoPlayerRef} />
+              </div>
+            )}
+
+            {/* 翻译面板 */}
+            {leftPanelTab === "translation" && (
+              <div className="flex-1 overflow-y-auto p-4">
+                <TranslationPanel />
+              </div>
+            )}
           </div>
         )}
       </div>
